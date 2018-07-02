@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- 定义日志文件的存储地址 勿在 LogBack 的配置中使用相对路径 -->
+    <property name="LOG_HOME" value="./log"/>
+    <!-- 把日志添加到控制台 -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <!-- 日志输出编码 -->
+        <encoder>
+            <charset>UTF-8</charset>
+            <!--
+                格式化输出
+                %d：表示日期
+                %thread：表示线程名
+                %-5level：级别从左显示5个字符宽度
+                %logger：输出日志的logger名，可有一个整型参数，功能是缩短logger名，设置为0表示只输入logger最右边点符号之后的字符串
+                %msg：日志消息
+                %n：是换行符
+            -->
+            <pattern>%d [%thread] %-5level [%logger{36}] - %msg%n</pattern>
+        </encoder>
+    </appender>
+    <!-- 滚动记录文件，先将日志记录到指定文件，当符合某个条件时，将日志记录到其他文件 -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!--
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>WARN</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        -->
+        <!-- 日志输出编码 -->
+        <encoder>
+            <charset>UTF-8</charset>
+            <pattern>%d [%thread] %-5level [%logger{36}] - %msg%n</pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- 每天生成一个日志文件，每月生成一个文件夹 -->
+            <fileNamePattern>${LOG_HOME}/%d{yyyyMM, aux}/%d.log</fileNamePattern>
+            <!--
+            By setting the maxHistory property of TimeBasedRollingPolicy or SizeAndTimeBasedFNATP,
+            you can control the maximum number of archived files.
+            If your rolling policy calls for monthly rollover and you wish to keep one year's worth of logs,
+            simply set the maxHistory property to 12.
+            Archived log files older than 12 months will be automatically removed.
+            -->
+            <maxHistory>180</maxHistory>
+        </rollingPolicy>
+    </appender>
+
+    <!--additivity的作用在于children-logger是否使用rootLogger配置的appender进行输出-->
+    <!--false：表示只用当前logger的appender-ref-->
+    <!--true：表示当前logger的appender-ref和rootLogger的appender-ref都有效-->
+
+    <!--<logger name="xyz.fz" level="DEBUG" additivity="false">-->
+    <!--<appender-ref ref="STDOUT"/>-->
+    <!--</logger>-->
+
+    <!-- Application Loggers -->
+    <logger name="xyz.fz" level="DEBUG"/>
+
+    <!-- Root Logger -->
+    <root level="INFO">
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="FILE"/>
+    </root>
+</configuration>
