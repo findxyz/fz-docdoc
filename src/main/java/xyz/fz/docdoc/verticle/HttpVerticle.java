@@ -30,6 +30,10 @@ public class HttpVerticle extends AbstractVerticle {
 
     private static final String MANAGE_PATH = "docdoc/manage";
 
+    private static final String CONTENT_HTML = "text/html; charset=utf-8";
+
+    private static final String CONTENT_JSON = "application/json; charset=utf-8";
+
     private static final String CUR_USER = "curUser";
 
     @Override
@@ -54,7 +58,7 @@ public class HttpVerticle extends AbstractVerticle {
         router.route("/pubs/*").handler(routingContext -> {
             LOGGER.debug("/pubs/* filter");
             HttpServerResponse response = routingContext.response();
-            response.putHeader("content-type", "text/html");
+            response.putHeader("Content-Type", CONTENT_HTML);
             Session session = routingContext.session();
             String uri = routingContext.request().uri();
             if (uri.contains(MANAGE_PATH) && session.get(CUR_USER) == null) {
@@ -77,14 +81,14 @@ public class HttpVerticle extends AbstractVerticle {
 
         /* index */
         router.route("/").handler(routingContext -> {
-            routingContext.response().putHeader("content-type", "text/html").end(LOGIN_PAGE);
+            routingContext.response().putHeader("Content-Type", CONTENT_HTML).end(LOGIN_PAGE);
         });
 
         /* api filter */
         router.route("/*").handler(routingContext -> {
             LOGGER.debug("/* filter");
             HttpServerResponse response = routingContext.response();
-            response.putHeader("content-type", "application/json");
+            response.putHeader("Content-Type", CONTENT_JSON);
             routingContext.next();
         });
 
