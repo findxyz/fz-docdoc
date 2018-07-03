@@ -27,10 +27,6 @@ public class BaseUtil {
         }
     }
 
-    public static String errorFormat(String errorMsg) {
-        return "error: " + errorMsg;
-    }
-
     public static String getExceptionStackTrace(Throwable e) {
 
         StringWriter sw = null;
@@ -52,5 +48,21 @@ public class BaseUtil {
                 ex.printStackTrace();
             }
         }
+    }
+
+    public static String urlLoading(String url) {
+        String html = "<!DOCTYPE html>" +
+                "<html lang='en'>" +
+                "<head>" +
+                "<meta charset='UTF-8'/>" +
+                "<title>loading</title>" +
+                "</head>" +
+                "<body>" +
+                "<script type='text/javascript'>" +
+                "window.location = '#{url}';" +
+                "</script>" +
+                "</body>" +
+                "</html>";
+        return html.replace("#{url}", url);
     }
 }

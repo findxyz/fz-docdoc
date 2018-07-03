@@ -2,10 +2,9 @@ package xyz.fz.docdoc.run;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationContext;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.util.Assert;
-import xyz.fz.docdoc.util.SpringContextHelper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,11 +15,12 @@ public class H2InitRunner implements Runnable {
 
     private JdbcTemplate jdbcTemplate;
 
+    public H2InitRunner(ApplicationContext context) {
+        this.jdbcTemplate = context.getBean("jdbcTemplate", JdbcTemplate.class);
+    }
+
     @Override
     public void run() {
-        JdbcTemplate jdbcTemplate = SpringContextHelper.getBean("jdbcTemplate", JdbcTemplate.class);
-        this.jdbcTemplate = jdbcTemplate;
-        Assert.notNull(jdbcTemplate, "jdbcTemplate is null");
         try {
             String testSql = "SELECT * FROM t_test ";
             jdbcTemplate.execute(testSql);
@@ -50,6 +50,8 @@ public class H2InitRunner implements Runnable {
         fieldList.add("userName VARCHAR(255), ");
         fieldList.add("passWord VARCHAR(255) ");
         initTable("t_user", fieldList);
+        String adminSql = "insert into t_user(userName, passWord) values('admin', 'docdocadmin'); ";
+        jdbcTemplate.execute(adminSql);
     }
 
     private void initTable(String tableName, List<String> fieldList) {

@@ -12,8 +12,6 @@ import xyz.fz.docdoc.service.UserService;
 import javax.transaction.Transactional;
 import java.util.Optional;
 
-import static org.springframework.data.domain.ExampleMatcher.GenericPropertyMatchers.contains;
-
 @Service
 public class UserServiceImpl implements UserService {
 
@@ -26,23 +24,42 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(rollbackOn = Exception.class)
-    public boolean addUser(JsonObject jsonObject) {
+    public JsonObject add(JsonObject jsonObject) {
         String userName = jsonObject.getString("userName");
         String passWord = jsonObject.getString("passWord");
         ExampleMatcher matcher = ExampleMatcher.matching();
         User sUser = new User();
         sUser.setUserName(userName);
         matcher = matcher.withMatcher("userName", ExampleMatcher.GenericPropertyMatchers.exact());
-        Example<User> userExampleExample = Example.of(sUser, matcher);
-        Optional<User> fUser = userRepository.findOne(userExampleExample);
+        Example<User> userExample = Example.of(sUser, matcher);
+        Optional<User> fUser = userRepository.findOne(userExample);
         if (fUser.isPresent()) {
-            return false;
+            throw new RuntimeException("当前用户名已存在");
         } else {
             User user = new User();
             user.setUserName(userName);
             user.setPassWord(passWord);
             userRepository.save(user);
-            return true;
+            return new JsonObject();
         }
+    }
+
+    @Override
+    public JsonObject login(JsonObject jsonObject) {
+        String userName = jsonObject.getString("userName");
+        String passWord = jsonObject.getString("passWord");
+        User sUser = new User();
+        sUser.setUserName(userName);
+        sUser.setPassWord(passWord);
+        ExampleMatcher matcher = ExampleMatcher.matching()
+                .withMatcher("userName", ExampleMatcher.GenericPropertyMatchers.exact())
+                .withMatcher("passWord", ExampleMatcher.GenericPropertyMatchers.exact());
+        Example<User> userExample = Example.of(sUser, matcher);
+        Optional<User> fUser = userRepository.findOne(userExample);
+        if (!fUser.isPresent()) {
+            throw new RuntimeException("账号密码错误");
+        }
+        User user = fUser.get();
+        return new JsonObject().put("id", user.getId()).put("userName", user.getUserName()).put("passWord", user.getPassWord());
     }
 }
