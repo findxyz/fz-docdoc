@@ -1,7 +1,7 @@
 package xyz.fz.docdoc.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import xyz.fz.docdoc.util.BaseUtil;
+import io.vertx.core.json.JsonObject;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Result {
@@ -14,39 +14,31 @@ public class Result {
 
     private String redirect;
 
-    private String forward;
-
-    public static String ofSuccess() {
-        Result result = new Result();
-        result.success = true;
-        return BaseUtil.toJson(result);
+    public static JsonObject ofSuccess() {
+        JsonObject result = new JsonObject();
+        result.put("success", true);
+        return result;
     }
 
-    public static String ofData(Object data) {
-        Result result = new Result();
-        result.success = true;
-        result.data = data;
-        return BaseUtil.toJson(result);
+    public static JsonObject ofData(Object data) {
+        JsonObject result = new JsonObject();
+        result.put("success", true);
+        result.put("data", data);
+        return result;
     }
 
-    public static String ofMessage(String message) {
-        Result result = new Result();
-        result.success = false;
-        result.message = message;
-        return BaseUtil.toJson(result);
+    public static JsonObject ofMessage(String message) {
+        JsonObject result = new JsonObject();
+        result.put("success", false);
+        result.put("message", message);
+        return result;
     }
 
-    public static String ofRedirect(String redirect) {
-        Result result = new Result();
-        result.redirect = redirect;
-        return BaseUtil.toJson(result);
-    }
-
-    public static String ofForward(String forward) {
-        Result result = new Result();
-        result.success = false;
-        result.forward = forward;
-        return BaseUtil.toJson(result);
+    public static JsonObject ofRedirect(String redirect) {
+        JsonObject result = new JsonObject();
+        result.put("success", false);
+        result.put("redirect", redirect);
+        return result;
     }
 
     public boolean isSuccess() {
@@ -79,13 +71,5 @@ public class Result {
 
     public void setRedirect(String redirect) {
         this.redirect = redirect;
-    }
-
-    public String getForward() {
-        return forward;
-    }
-
-    public void setForward(String forward) {
-        this.forward = forward;
     }
 }

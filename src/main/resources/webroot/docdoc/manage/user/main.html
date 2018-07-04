@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>user main</title>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+    <link href="/pubs/layui-v2.2.6/layui/css/layui.css" rel="stylesheet"/>
+    <style type="text/css">
+        body {
+            margin: 2px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="layui-btn-group">
+    <button class="layui-btn" id="addBtn">添加用户</button>
+    <button class="layui-btn layui-btn-danger layui-layout-right" id="adminUpdateBtn">管理员密码更改</button>
+</div>
+
+<table class="layui-table" id="userList" lay-filter="userList"></table>
+
+<script type="text/html" id="toolBar">
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+</script>
+
+<script type="text/javascript" src="/pubs/layui-v2.2.6/layui/layui.all.js"></script>
+<script type="text/javascript">
+    /*<![CDATA[*/
+    !function () {
+        var $ = layui.jquery;
+        var table = layui.table;
+        var layer = layui.layer;
+
+        table.render({
+            elem: '#userList'
+            , width: '800px'
+            , url: '/docdoc/manage/api/user/list'
+            , cellMinWidth: 80
+            , cols: [[
+                {field: 'id', width: 80, title: 'ID'}
+                , {field: 'userName', width: 200, title: '用户名'}
+                , {width: 200, title: '操作', align: 'center', toolbar: '#toolBar'}
+            ]]
+        });
+
+        table.on('tool(userList)', function (obj) {
+            var data = obj.data;
+            if (obj.event === 'del') {
+                layer.confirm('确定删除该用户吗？', function (index) {
+                    layer.close(index);
+                    $.ajax("/docdoc/manage/api/user/del", {
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify({
+                            id: data.id
+                        }),
+                        dataType: 'json',
+                        success: function (json) {
+                            if (json.success) {
+                                table.reload('userList', {});
+                            } else {
+                                layer.open({time: 5000, content: '<div>' + json.message + '</div>'});
+                            }
+                        }
+                    });
+                });
+            }
+        });
+
+        $("#addBtn").bind("click", function () {
+            window.location = "/docdoc/manage/html/user/add";
+        });
+
+        $("#adminUpdateBtn").click(function () {
+            layer.open({
+                title: '更新密码'
+                , area: '500px'
+                , content: $("#adminUpdateTemplate").html()
+                , btn: ['更新', '关闭']
+                , yes: function (index, layero) {
+                    var oldPass = $("#adminOldPassWord").val();
+                    var newPass = $("#adminNewPassWord").val();
+                    if (oldPass && newPass) {
+                        layer.close(index);
+                        $.ajax("/docdoc/manage/api/user/admin/update", {
+                            type: 'POST',
+                            contentType: 'application/json',
+                            data: JSON.stringify({
+                                adminOldPassWord: oldPass,
+                                adminNewPassWord: newPass
+                            }),
+                            dataType: 'json',
+                            success: function (json) {
+                                if (json.success) {
+                                    layer.open({time: 5000, content: '<div>更新成功</div>'});
+                                } else {
+                                    layer.open({time: 5000, content: '<div>' + json.message + '</div>'});
+                                }
+                            }
+                        });
+                    }
+                }
+                , close: function (index, layero) {
+                    layer.close(index);
+                }
+            });
+            setTimeout(function () {
+                $("#adminOldPassWord").focus();
+            }, 300);
+        });
+    }();
+    /*]]>*/
+</script>
+<script id="adminUpdateTemplate" type="text/html">
+    <form class="layui-form layui-form-pane" action="">
+        <div class="layui-form-item">
+            <label class="layui-form-label">原始密码</label>
+            <div class="layui-input-inline" style="width: 300px;">
+                <input type="password" id="adminOldPassWord" lay-verify="required" autocomplete="off" placeholder="原始密码"
+                       class="layui-input"/>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">新密码</label>
+            <div class="layui-input-inline" style="width: 300px;">
+                <input type="password" id="adminNewPassWord" lay-verify="required" autocomplete="off" placeholder="新密码"
+                       class="layui-input"/>
+            </div>
+        </div>
+    </form>
+</script>
+</body>
+</html>

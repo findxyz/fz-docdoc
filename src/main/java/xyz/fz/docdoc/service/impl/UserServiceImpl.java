@@ -1,19 +1,27 @@
 package xyz.fz.docdoc.service.impl;
 
 import io.vertx.core.json.JsonObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import xyz.fz.docdoc.entity.User;
+import xyz.fz.docdoc.model.Result;
 import xyz.fz.docdoc.repository.UserRepository;
 import xyz.fz.docdoc.service.UserService;
 
 import javax.transaction.Transactional;
+import java.util.List;
 import java.util.Optional;
 
 @Service
+@Transactional(rollbackOn = Exception.class)
 public class UserServiceImpl implements UserService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(UserServiceImpl.class);
 
     private final UserRepository userRepository;
 
@@ -23,14 +31,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
     public JsonObject add(JsonObject jsonObject) {
         String userName = jsonObject.getString("userName");
         String passWord = jsonObject.getString("passWord");
-        ExampleMatcher matcher = ExampleMatcher.matching();
         User sUser = new User();
         sUser.setUserName(userName);
-        matcher = matcher.withMatcher("userName", ExampleMatcher.GenericPropertyMatchers.exact());
+        ExampleMatcher matcher = ExampleMatcher.matching()
+                .withMatcher("userName", ExampleMatcher.GenericPropertyMatchers.exact());
         Example<User> userExample = Example.of(sUser, matcher);
         Optional<User> fUser = userRepository.findOne(userExample);
         if (fUser.isPresent()) {
@@ -40,7 +47,7 @@ public class UserServiceImpl implements UserService {
             user.setUserName(userName);
             user.setPassWord(passWord);
             userRepository.save(user);
-            return new JsonObject();
+            return Result.ofSuccess();
         }
     }
 
@@ -60,6 +67,48 @@ public class UserServiceImpl implements UserService {
             throw new RuntimeException("账号密码错误");
         }
         User user = fUser.get();
-        return new JsonObject().put("id", user.getId()).put("userName", user.getUserName()).put("passWord", user.getPassWord());
+        return JsonObject.mapFrom(user);
+    }
+
+    @Override
+    public JsonObject list(JsonObject jsonObject) {
+        LOGGER.debug("user list params: {}", jsonObject.toString());
+        Sort sort = new Sort(Sort.Direction.ASC, "id");
+        List<User> list = userRepository.findByUserNameNot("admin", sort);
+        JsonObject result = new JsonObject();
+        result.put("code", 0);
+        result.put("msg", "");
+        result.put("data", list);
+        result.put("count", list.size());
+        return result;
+    }
+
+    @Override
+    public JsonObject del(JsonObject jsonObject) {
+        LOGGER.debug("user del params: {}", jsonObject.toString());
+        userRepository.deleteById(jsonObject.getLong("id"));
+        return Result.ofSuccess();
+    }
+
+    @Override
+    public JsonObject adminUpdate(JsonObject jsonObject) {
+        String adminOldPassWord = jsonObject.getString("adminOldPassWord");
+        String adminNewPassWord = jsonObject.getString("adminNewPassWord");
+        User sUser = new User();
+        sUser.setUserName("admin");
+        sUser.setPassWord(adminOldPassWord);
+        ExampleMatcher exampleMatcher = ExampleMatcher.matching()
+                .withMatcher("userName", ExampleMatcher.GenericPropertyMatchers.exact())
+                .withMatcher("passWord", ExampleMatcher.GenericPropertyMatchers.exact());
+        Example<User> userExample = Example.of(sUser, exampleMatcher);
+        Optional<User> fUser = userRepository.findOne(userExample);
+        if (fUser.isPresent()) {
+            User user = fUser.get();
+            user.setPassWord(adminNewPassWord);
+            userRepository.save(user);
+            return Result.ofSuccess();
+        } else {
+            throw new RuntimeException("原始密码不正确");
+        }
     }
 }

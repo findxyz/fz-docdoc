@@ -52,6 +52,7 @@ public class H2InitRunner implements Runnable {
         initTable("t_user", fieldList);
         String adminSql = "insert into t_user(userName, passWord) values('admin', 'docdocadmin'); ";
         jdbcTemplate.execute(adminSql);
+        LOGGER.info("初始用户admin创建成功，初始密码：docdocadmin，请在用户管理中进行修改");
     }
 
     private void initTable(String tableName, List<String> fieldList) {

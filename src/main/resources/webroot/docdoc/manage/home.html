@@ -1,5 +1,165 @@
 <!DOCTYPE html>
-<html lang="en">
-<head></head>
-<body>home</body>
+<html>
+<head>
+    <title>首页</title>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+    <link href="/pubs/layui-v2.2.6/layui/css/layui.css" rel="stylesheet"/>
+    <style type="text/css">
+        .layui-tab {
+            margin: 0 0;
+            text-align: left !important
+        }
+
+        .layui-tab-content {
+            padding: 5px
+        }
+    </style>
+</head>
+<body class="layui-layout-body">
+<div class="layui-layout layui-layout-admin">
+    <div class="layui-header layui-bg-black">
+        <div>
+            <a class="layui-logo" href="/docdoc/manage/html/home">
+                <span style="color: orange; font-size: 18px; font-weight: bold;">
+                    docdoc文档管理
+                </span>
+            </a>
+        </div>
+        <ul class="layui-nav layui-layout-right">
+            <li class="layui-nav-item">
+                <a href="javascript:void(0);" class="newTab" url="/docdoc/manage/html/user/main" id="userManage" title="用户管理">
+                    <span style="color: chartreuse; font-size: 18px; font-weight: bold;">
+                        用户管理
+                    </span>
+                </a>
+            </li>
+            <li class="layui-nav-item">
+                <a href="javascript:void(0);">
+                    <span style="color: yellow; font-size: 18px; font-weight: bold;" id="userName">
+                        user xyz
+                    </span>
+                </a>
+            </li>
+            <li class="layui-nav-item">
+                <a id="logout" href="javascript:void(0);">
+                    <span style="color: #19fdff; font-size: 18px; font-weight: bold;">
+                        退出
+                    </span>
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <div class="layui-side layui-bg-black">
+        <div class="layui-side-scroll">
+            <ul class="layui-nav layui-nav-tree" lay-filter="docdoc">
+                <li class="layui-nav-item layui-nav-itemed layui-this">
+                    <a href="/docdoc/manage/html/home">首页</a>
+                </li>
+                <li class="layui-nav-item layui-nav-itemed">
+                    <a href="javascript:void(0);">文档管理</a>
+                    <dl class="layui-nav-child">
+                        <dd>
+                            <a href="javascript:void(0);" class="newTab" url="/docdoc/manage/html/api/main" id="api"
+                               title="API文档">
+                                API文档
+                            </a>
+                        </dd>
+                    </dl>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="layui-body">
+        <div class="layui-tab" lay-filter="mainContent" lay-allowclose="true">
+            <ul class="layui-tab-title">
+                <li class="layui-this">== 欢迎 ==</li>
+            </ul>
+            <div class="layui-tab-content">
+                <div class="layui-tab-item layui-show">
+                    <blockquote class="layui-elem-quote" style="width: 500px;">
+                        <h3>念奴娇·赤壁怀古</h3><br/>
+                        大江东去，浪淘尽，千古风流人物。<br/>
+                        故垒西边，人道是：三国周郎赤壁。<br/>
+                        乱石穿空，惊涛拍岸，卷起千堆雪。<br/>
+                        江山如画，一时多少豪杰。<br/>
+                        遥想公瑾当年，小乔初嫁了，雄姿英发。<br/>
+                        羽扇纶巾，谈笑间樯橹灰飞烟灭。<br/>
+                        故国神游，多情应笑我，早生华发。<br/>
+                        人生如梦，一尊还酹江月。
+                    </blockquote>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="layui-footer">
+        © f1ndwh7.xyz
+    </div>
+</div>
+
+<script type="text/javascript" src="/pubs/layui-v2.2.6/layui/layui.all.js"></script>
+<script type="text/javascript">
+    /*<![CDATA[*/
+    !function () {
+        var $ = layui.$;
+        var element = layui.element;
+
+        var tabAdd = function (title, content, id) {
+            var newId = id + "-" + new Date().getTime();
+            element.tabAdd('mainContent', {
+                title: title
+                , content: content
+                , id: newId
+            });
+            element.tabChange('mainContent', newId);
+        };
+
+        $(".newTab").click(function () {
+            var title = $(this).attr("title");
+            var url = $(this).attr("url");
+            var content = '<iframe src="' + url + '" frameborder="0" style="width: 100%; height: ' + ($(window).height() - 160) + 'px;"></iframe>';
+            var id = $(this).attr("id");
+            tabAdd(title, content, id);
+        });
+
+        $(window).on('resize', function () {
+            $('#mainContent').height($(window).height() - 110);
+        });
+
+        $("#logout").bind("click", function () {
+            $.ajax("/doLogout", {
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({}),
+                dataType: 'json',
+                success: function (json) {
+                    if (json.success) {
+                        window.location = "/";
+                    } else {
+                        alert(json.message);
+                    }
+                }
+            });
+        });
+
+        $.ajax("/docdoc/manage/api/login/info", {
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({}),
+            dataType: 'json',
+            success: function (json) {
+                if (json.success) {
+                    $("#userName").text(json.data.userName);
+                } else {
+                    alert(json.message);
+                }
+            }
+        });
+    }();
+    /*]]>*/
+</script>
+</body>
 </html>

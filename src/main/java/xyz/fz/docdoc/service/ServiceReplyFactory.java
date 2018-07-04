@@ -26,6 +26,12 @@ public class ServiceReplyFactory {
                 return userService.add(jsonObject);
             case ServiceVerticle.USER_LOGIN:
                 return userService.login(jsonObject);
+            case ServiceVerticle.USER_LIST:
+                return userService.list(jsonObject);
+            case ServiceVerticle.USER_DEL:
+                return userService.del(jsonObject);
+            case ServiceVerticle.USER_ADMIN_UPDATE:
+                return userService.adminUpdate(jsonObject);
             default:
                 throw new RuntimeException("EventBus address not found");
         }
