@@ -14,7 +14,6 @@ import io.vertx.ext.web.sstore.SessionStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xyz.fz.docdoc.model.Result;
-import xyz.fz.docdoc.util.BaseProperties;
 import xyz.fz.docdoc.util.BaseUtil;
 import xyz.fz.docdoc.util.EventBusUtil;
 
@@ -37,6 +36,12 @@ public class HttpVerticle extends AbstractVerticle {
 
     private static final String STATIC_HTML = ".html";
 
+    private int port;
+
+    public HttpVerticle(int port) {
+        this.port = port;
+    }
+
     @Override
     public void start() throws Exception {
         super.start();
@@ -55,7 +60,7 @@ public class HttpVerticle extends AbstractVerticle {
 
         server.requestHandler(router::accept);
 
-        server.listen(Integer.parseInt(BaseProperties.get("server.port")));
+        server.listen(port);
     }
 
     private void sessionHandler(Router router) {

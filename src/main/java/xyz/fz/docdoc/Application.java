@@ -8,8 +8,6 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import xyz.fz.docdoc.configuration.ComponentConfiguration;
 import xyz.fz.docdoc.configuration.DataSourceConfiguration;
 import xyz.fz.docdoc.run.H2InitRunner;
-import xyz.fz.docdoc.service.ServiceReplyFactory;
-import xyz.fz.docdoc.util.BaseProperties;
 import xyz.fz.docdoc.util.ThreadUtil;
 import xyz.fz.docdoc.verticle.HttpVerticle;
 import xyz.fz.docdoc.verticle.ServiceVerticle;
@@ -31,16 +29,14 @@ public class Application {
         /* init h2database */
         ThreadUtil.execute(new H2InitRunner(context));
 
-        /* init service reply factory */
-        ServiceReplyFactory.init(context);
-
         /* deploy verticles */
         final Vertx vertx = Vertx.vertx();
         DeploymentOptions workerDeploymentOptions = new DeploymentOptions();
         workerDeploymentOptions.setWorker(true);
-        vertx.deployVerticle(new ServiceVerticle(), workerDeploymentOptions);
-        vertx.deployVerticle(new HttpVerticle());
+        vertx.deployVerticle(new ServiceVerticle(context), workerDeploymentOptions);
+        int serverPort = Integer.parseInt(context.getEnvironment().getProperty("server.port"));
+        vertx.deployVerticle(new HttpVerticle(serverPort));
 
-        LOGGER.info("Deployment done. Server is running at port: {}", BaseProperties.get("server.port"));
+        LOGGER.info("Deployment done. Server is running at port: {}", serverPort);
     }
 }

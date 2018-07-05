@@ -1,6 +1,5 @@
 package xyz.fz.docdoc.util;
 
-import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
@@ -11,7 +10,6 @@ import io.vertx.ext.web.RoutingContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xyz.fz.docdoc.model.Result;
-import xyz.fz.docdoc.service.ServiceReplyFactory;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -72,18 +70,5 @@ public class EventBusUtil {
             result = Result.ofMessage(asyncResult.cause().getMessage()).toString();
         }
         response.end(result);
-    }
-
-    public static void consumer(Vertx vertx, String address) {
-        vertx.eventBus().consumer(address, msg -> {
-            try {
-                JsonObject replyJsonObject = ServiceReplyFactory.reply(address, (JsonObject) msg.body());
-                String replyJsonString = replyJsonObject != null ? replyJsonObject.toString() : Result.ofSuccess().toString();
-                msg.reply(replyJsonString);
-            } catch (Exception e) {
-                LOGGER.error(BaseUtil.getExceptionStackTrace(e));
-                msg.fail(HttpResponseStatus.INTERNAL_SERVER_ERROR.code(), e.getMessage());
-            }
-        });
     }
 }

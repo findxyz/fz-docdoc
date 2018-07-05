@@ -7,10 +7,10 @@
     <link href="/pubs/layui-v2.2.6/layui/css/layui.css" rel="stylesheet"/>
     <style>
         .layui-card {
-            height: 276px;
-            min-width: 276px;
-            max-width: 276px;
-            margin: 15px;
+            height: 216px;
+            min-width: 216px;
+            max-width: 216px;
+            margin: 10px;
             text-align: center;
             background: #F2F2F2;
             cursor: pointer;
@@ -67,5 +67,105 @@
 </div>
 
 <script type="text/javascript" src="/pubs/layui-v2.2.6/layui/layui.all.js"></script>
+<script type="text/javascript">
+    /*<![CDATA[*/
+    !function () {
+        var $ = layui.jquery;
+        var layer = layui.layer;
+
+        // todo grid load
+        var gridLoad = function (dataList) {
+
+        };
+
+        $("#addBtn").click(function () {
+            layer.open({
+                title: '新建項目文档'
+                , area: '500px'
+                , content: $("#newProjectTemplate").html()
+                , btn: ['确定', '关闭']
+                , yes: function (index, layero) {
+                    var name = $("#name").val();
+                    if (name) {
+                        layer.close(index);
+                        $.ajax("/docdoc/manage/api/project/add", {
+                            type: 'POST',
+                            contentType: 'application/json',
+                            data: JSON.stringify({
+                                name: name
+                            }),
+                            dataType: 'json',
+                            success: function (json) {
+                                if (json.success) {
+                                    // todo grid reload
+                                } else {
+                                    layer.open({time: 5000, content: '<div>' + json.message + '</div>'});
+                                }
+                            }
+                        });
+                    }
+                }
+                , close: function (index, layero) {
+                    layer.close(index);
+                }
+            });
+            setTimeout(function () {
+                $("#name").focus();
+            }, 300);
+        });
+    }();
+    /*]]>*/
+</script>
+<script id="newProjectTemplate" type="text/html">
+    <form class="layui-form layui-form-pane" action="">
+        <div class="layui-form-item">
+            <label class="layui-form-label">項目名称</label>
+            <div class="layui-input-inline" style="width: 300px;">
+                <input type="text" id="name" lay-verify="required" autocomplete="off" placeholder="項目名称"
+                       class="layui-input"/>
+            </div>
+        </div>
+    </form>
+</script>
+<script id="gridTemplate" type="text/html">
+    <div class="layui-row">
+        <div class="layui-col-md3">
+            <div class="layui-card">
+                <div class="card-content">
+                    <i class="layui-icon" style="font-size: 40px">
+                        #{grid_1}
+                    </i>
+                </div>
+            </div>
+        </div>
+        <div class="layui-col-md3">
+            <div class="layui-card">
+                <div class="card-content">
+                    <i class="layui-icon" style="font-size: 40px">
+                        #{grid_2}
+                    </i>
+                </div>
+            </div>
+        </div>
+        <div class="layui-col-md3">
+            <div class="layui-card">
+                <div class="card-content">
+                    <i class="layui-icon" style="font-size: 40px">
+                        #{grid_3}
+                    </i>
+                </div>
+            </div>
+        </div>
+        <div class="layui-col-md3">
+            <div class="layui-card">
+                <div class="card-content">
+                    <i class="layui-icon" style="font-size: 40px">
+                        #{grid_4}
+                    </i>
+                </div>
+            </div>
+        </div>
+    </div>
+</script>
 </body>
 </html>
