@@ -28,7 +28,8 @@
         </div>
         <ul class="layui-nav layui-layout-right">
             <li class="layui-nav-item">
-                <a href="javascript:void(0);" class="newTab" url="/docdoc/manage/html/user/main" id="userManage" title="用户管理">
+                <a href="javascript:void(0);" class="newTab" url="/docdoc/manage/html/user/main" id="userManage"
+                   title="用户管理">
                     <span style="color: chartreuse; font-size: 18px; font-weight: bold;">
                         用户管理
                     </span>
@@ -55,7 +56,7 @@
         <div class="layui-side-scroll">
             <ul class="layui-nav layui-nav-tree" lay-filter="docdoc">
                 <li class="layui-nav-item layui-nav-itemed layui-this">
-                    <a href="/docdoc/manage/html/home">首页</a>
+                    <a href="javascript:void(0);" id="welcome">首页</a>
                 </li>
                 <li class="layui-nav-item layui-nav-itemed">
                     <a href="javascript:void(0);">文档管理</a>
@@ -75,7 +76,7 @@
     <div class="layui-body">
         <div class="layui-tab layui-tab-card" lay-filter="mainContent" lay-allowclose="true">
             <ul class="layui-tab-title">
-                <li class="layui-this">== 欢迎 ==</li>
+                <li class="layui-this" lay-id="welcome">== 欢迎 ==</li>
             </ul>
             <div class="layui-tab-content">
                 <div class="layui-tab-item layui-show">
@@ -143,6 +144,10 @@
                     }
                 }
             });
+        });
+
+        $("#welcome").click(function () {
+            element.tabChange('mainContent', "welcome");
         });
 
         $.ajax("/docdoc/manage/api/login/info", {
