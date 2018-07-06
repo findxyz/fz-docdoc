@@ -19,6 +19,7 @@ import xyz.fz.docdoc.util.EventBusUtil;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class HttpVerticle extends AbstractVerticle {
 
@@ -35,6 +36,10 @@ public class HttpVerticle extends AbstractVerticle {
     private static final String ADMIN_REQUIRE_MESSAGE = "需要管理员权限";
 
     private static final String STATIC_HTML = ".html";
+
+    private static SessionStore sessionStore;
+
+    private static ConcurrentHashMap<String, String> loginUserMap = new ConcurrentHashMap<>();
 
     private int port;
 
@@ -65,11 +70,28 @@ public class HttpVerticle extends AbstractVerticle {
 
     private void sessionHandler(Router router) {
         router.route().handler(CookieHandler.create());
-        SessionStore store = LocalSessionStore.create(vertx);
-        SessionHandler sessionHandler = SessionHandler.create(store);
+        sessionStore = LocalSessionStore.create(vertx);
+        SessionHandler sessionHandler = SessionHandler.create(sessionStore);
         sessionHandler.setCookieHttpOnlyFlag(true);
         sessionHandler.setSessionTimeout(60 * 60 * 24 * 30 * 1000L);
         router.route().handler(sessionHandler);
+    }
+
+    private static void loginUser(JsonObject curUser, Session session) {
+        logoutUser(curUser.getString("userName"));
+        session.put(CUR_USER, curUser);
+        loginUserMap.put(curUser.getString("userName"), session.id());
+    }
+
+    private static void logoutUser(String userName) {
+        if (loginUserMap.containsKey(userName)) {
+            sessionStore.get(loginUserMap.get(userName), sessionAsyncResult -> {
+                if (sessionAsyncResult.succeeded()) {
+                    sessionAsyncResult.result().remove(CUR_USER);
+                    loginUserMap.remove(userName);
+                }
+            });
+        }
     }
 
     private void staticHandler(Router router) {
@@ -96,7 +118,8 @@ public class HttpVerticle extends AbstractVerticle {
                     vertx.eventBus().send(ServiceVerticle.USER_LOGIN, new JsonObject(event.toString()), asyncResult -> {
                         String result;
                         if (asyncResult.succeeded()) {
-                            routingContext.session().put(CUR_USER, new JsonObject(asyncResult.result().body().toString()));
+                            JsonObject curUser = new JsonObject(asyncResult.result().body().toString());
+                            loginUser(curUser, routingContext.session());
                             result = Result.ofSuccess().toString();
                         } else {
                             result = Result.ofMessage(asyncResult.cause().getMessage()).toString();
@@ -111,7 +134,10 @@ public class HttpVerticle extends AbstractVerticle {
         });
 
         router.route("/doLogout").handler(routingContext -> {
-            routingContext.session().remove(CUR_USER);
+            JsonObject curUser = routingContext.session().get(CUR_USER);
+            if (curUser != null) {
+                logoutUser(curUser.getString("userName"));
+            }
             routingContext.response().putHeader("Content-Type", CONTENT_JSON).end(Result.ofSuccess().toString());
         });
     }
@@ -201,11 +227,46 @@ public class HttpVerticle extends AbstractVerticle {
         });
 
         router.route("/docdoc/manage/api/user/del").handler(routingContext -> {
-            EventBusUtil.jsonBus(vertx, routingContext, ServiceVerticle.USER_DEL);
+            routingContext.request().bodyHandler(event -> {
+                try {
+                    JsonObject eventJsonObject = new JsonObject(event.toString());
+                    vertx.eventBus().send(ServiceVerticle.USER_DEL, eventJsonObject, asyncResult -> {
+                        String result;
+                        if (asyncResult.succeeded()) {
+                            JsonObject replyJsonObject = new JsonObject(asyncResult.result().body().toString());
+                            logoutUser(replyJsonObject.getString("data"));
+                            result = asyncResult.result().body().toString();
+                        } else {
+                            result = Result.ofMessage(asyncResult.cause().getMessage()).toString();
+                        }
+                        routingContext.response().end(result);
+                    });
+                } catch (Exception e) {
+                    LOGGER.error(BaseUtil.getExceptionStackTrace(e));
+                    routingContext.response().end(Result.ofMessage(e.getMessage()).toString());
+                }
+            });
         });
 
         router.route("/docdoc/manage/api/user/admin/update").handler(routingContext -> {
-            EventBusUtil.jsonBus(vertx, routingContext, ServiceVerticle.USER_ADMIN_UPDATE);
+            routingContext.request().bodyHandler(event -> {
+                try {
+                    JsonObject eventJsonObject = new JsonObject(event.toString());
+                    vertx.eventBus().send(ServiceVerticle.USER_ADMIN_UPDATE, eventJsonObject, asyncResult -> {
+                        String result;
+                        if (asyncResult.succeeded()) {
+                            logoutUser("admin");
+                            result = asyncResult.result().body().toString();
+                        } else {
+                            result = Result.ofMessage(asyncResult.cause().getMessage()).toString();
+                        }
+                        routingContext.response().end(result);
+                    });
+                } catch (Exception e) {
+                    LOGGER.error(BaseUtil.getExceptionStackTrace(e));
+                    routingContext.response().end(Result.ofMessage(e.getMessage()).toString());
+                }
+            });
         });
     }
 

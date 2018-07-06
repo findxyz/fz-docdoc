@@ -86,8 +86,13 @@ public class UserServiceImpl implements UserService {
     @Override
     public JsonObject del(JsonObject jsonObject) {
         LOGGER.debug("user del params: {}", jsonObject.toString());
+        Optional<User> fUser = userRepository.findById(jsonObject.getLong("id"));
         userRepository.deleteById(jsonObject.getLong("id"));
-        return Result.ofSuccess();
+        if (fUser.isPresent()) {
+            return Result.ofData(fUser.get().getUserName());
+        } else {
+            return Result.ofMessage("没有找到该用户");
+        }
     }
 
     @Override
