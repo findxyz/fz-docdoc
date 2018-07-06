@@ -3,7 +3,7 @@ package xyz.fz.docdoc.entity;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "t_project")
+@Table(name = "t_doc_project")
 public class Project {
 
     @Id

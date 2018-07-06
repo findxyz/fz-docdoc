@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import xyz.fz.docdoc.model.Result;
+import xyz.fz.docdoc.service.DocService;
 import xyz.fz.docdoc.service.UserService;
 import xyz.fz.docdoc.util.BaseUtil;
 
@@ -21,6 +22,9 @@ public class ServiceVerticle extends AbstractVerticle {
     static final String USER_DEL = "USER_DEL";
     static final String USER_ADMIN_UPDATE = "USER_ADMIN_UPDATE";
 
+    static final String DOC_PROJECT_ADD = "DOC_PROJECT_ADD";
+    static final String DOC_PROJECT_LIST = "DOC_PROJECT_LIST";
+
     public ServiceVerticle(ApplicationContext context) {
         ReplyFactory.serviceInit(context);
     }
@@ -32,6 +36,9 @@ public class ServiceVerticle extends AbstractVerticle {
         consumer(vertx, USER_LIST);
         consumer(vertx, USER_DEL);
         consumer(vertx, USER_ADMIN_UPDATE);
+
+        consumer(vertx, DOC_PROJECT_ADD);
+        consumer(vertx, DOC_PROJECT_LIST);
     }
 
     private void consumer(Vertx vertx, String address) {
@@ -52,29 +59,35 @@ public class ServiceVerticle extends AbstractVerticle {
         private static volatile boolean init = false;
 
         private static UserService userService;
+        private static DocService docService;
 
-        public static void serviceInit(ApplicationContext context) {
+        private static void serviceInit(ApplicationContext context) {
             if (!init) {
                 init = true;
                 userService = context.getBean("userServiceImpl", UserService.class);
+                docService = context.getBean("docServiceImpl", DocService.class);
             }
         }
 
-        static JsonObject reply(String address, JsonObject jsonObject) {
+        private static JsonObject reply(String address, JsonObject jsonObject) {
             if (!init) {
-                throw new RuntimeException("ServiceReplyFactory 没有初始化");
+                throw new RuntimeException("ReplyFactory 没有初始化");
             }
             switch (address) {
-                case ServiceVerticle.USER_ADD:
+                case USER_ADD:
                     return userService.add(jsonObject);
-                case ServiceVerticle.USER_LOGIN:
+                case USER_LOGIN:
                     return userService.login(jsonObject);
-                case ServiceVerticle.USER_LIST:
+                case USER_LIST:
                     return userService.list(jsonObject);
-                case ServiceVerticle.USER_DEL:
+                case USER_DEL:
                     return userService.del(jsonObject);
-                case ServiceVerticle.USER_ADMIN_UPDATE:
+                case USER_ADMIN_UPDATE:
                     return userService.adminUpdate(jsonObject);
+                case DOC_PROJECT_ADD:
+                    return docService.projectAdd(jsonObject);
+                case DOC_PROJECT_LIST:
+                    return docService.projectList(jsonObject);
                 default:
                     throw new RuntimeException("EventBus address not found");
             }

@@ -21,6 +21,7 @@
             color: #18a2ff;
             top: 50%;
             transform: translateY(-50%);
+            word-wrap: break-word;
         }
     </style>
 </head>
@@ -33,7 +34,7 @@
     <legend>项目文档</legend>
 </fieldset>
 
-<div class="layui-container">
+<div class="layui-container" id="container">
     <div class="layui-row">
         <div class="layui-col-md3">
             <div class="layui-card">
@@ -73,14 +74,64 @@
         var $ = layui.jquery;
         var layer = layui.layer;
 
-        // todo grid load
-        var gridLoad = function (dataList) {
+        var loadGrid = function () {
+            $.ajax("/docdoc/manage/api/doc/project/list", {
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({}),
+                dataType: 'json',
+                success: function (json) {
+                    if (json.success) {
+                        var dataList = json.data;
+                        if (dataList.length > 0) {
+                            refreshGrid(formatDataList(dataList));
+                        }
+                    } else {
+                        layer.open({time: 5000, content: '<div>' + json.message + '</div>'});
+                    }
+                }
+            });
+        };
 
+        var gridColumnLen = 4;
+        var formatDataList = function (dataList) {
+            var listMod = dataList.length % gridColumnLen;
+            var fillLen = gridColumnLen - listMod;
+            if (fillLen > 0 && fillLen < 4) {
+                for (var i = 0; i < fillLen; i++) {
+                    dataList.push({
+                        id: -1,
+                        name: '<i class="layui-icon" style="font-size: 40px">&#xe654;</i>',
+                        isActivity: 0
+                    });
+                }
+            }
+            return dataList;
+        };
+
+        var refreshGrid = function (formattedDataList) {
+            var container = $("#container");
+            container.html("");
+            var templateData = [];
+            var index = 0;
+            for (var i = 0; i < formattedDataList.length; i++) {
+                templateData[index] = formattedDataList[i];
+                index++;
+                if (index === gridColumnLen) {
+                    index = 0;
+                    var gridTemplate = $("#gridTemplate").html();
+                    for (var j = 0; j < templateData.length; j++) {
+                        gridTemplate = gridTemplate.replace("#{grid_" + j + "}", templateData[j].name).replace("#{projectId_" + j + "}", templateData[j].id);
+                    }
+                    container.append(gridTemplate);
+                    templateData = [];
+                }
+            }
         };
 
         $("#addBtn").click(function () {
             layer.open({
-                title: '新建項目文档'
+                title: '新建项目文档'
                 , area: '500px'
                 , content: $("#newProjectTemplate").html()
                 , btn: ['确定', '关闭']
@@ -88,7 +139,7 @@
                     var name = $("#name").val();
                     if (name) {
                         layer.close(index);
-                        $.ajax("/docdoc/manage/api/project/add", {
+                        $.ajax("/docdoc/manage/api/doc/project/add", {
                             type: 'POST',
                             contentType: 'application/json',
                             data: JSON.stringify({
@@ -97,7 +148,7 @@
                             dataType: 'json',
                             success: function (json) {
                                 if (json.success) {
-                                    // todo grid reload
+                                    loadGrid();
                                 } else {
                                     layer.open({time: 5000, content: '<div>' + json.message + '</div>'});
                                 }
@@ -113,55 +164,48 @@
                 $("#name").focus();
             }, 300);
         });
+
+        loadGrid();
     }();
     /*]]>*/
 </script>
 <script id="newProjectTemplate" type="text/html">
-    <form class="layui-form layui-form-pane" action="">
+    <div class="layui-form layui-form-pane">
         <div class="layui-form-item">
-            <label class="layui-form-label">項目名称</label>
+            <label class="layui-form-label">项目名称</label>
             <div class="layui-input-inline" style="width: 300px;">
-                <input type="text" id="name" lay-verify="required" autocomplete="off" placeholder="項目名称"
-                       class="layui-input"/>
+                <input type="text" id="name" autocomplete="off" placeholder="项目名称" class="layui-input"/>
             </div>
         </div>
-    </form>
+    </div>
 </script>
 <script id="gridTemplate" type="text/html">
     <div class="layui-row">
         <div class="layui-col-md3">
-            <div class="layui-card">
+            <div class="layui-card project-grid" projectId="#{projectId_0}">
                 <div class="card-content">
-                    <i class="layui-icon" style="font-size: 40px">
-                        #{grid_1}
-                    </i>
+                    <span style="font-size: 40px">#{grid_0}</span>
                 </div>
             </div>
         </div>
         <div class="layui-col-md3">
-            <div class="layui-card">
+            <div class="layui-card project-grid" projectId="#{projectId_1}">
                 <div class="card-content">
-                    <i class="layui-icon" style="font-size: 40px">
-                        #{grid_2}
-                    </i>
+                    <span style="font-size: 40px">#{grid_1}</span>
                 </div>
             </div>
         </div>
         <div class="layui-col-md3">
-            <div class="layui-card">
+            <div class="layui-card project-grid" projectId="#{projectId_2}">
                 <div class="card-content">
-                    <i class="layui-icon" style="font-size: 40px">
-                        #{grid_3}
-                    </i>
+                    <span style="font-size: 40px">#{grid_2}</span>
                 </div>
             </div>
         </div>
         <div class="layui-col-md3">
-            <div class="layui-card">
+            <div class="layui-card project-grid" projectId="#{projectId_3}">
                 <div class="card-content">
-                    <i class="layui-icon" style="font-size: 40px">
-                        #{grid_4}
-                    </i>
+                    <span style="font-size: 40px">#{grid_3}</span>
                 </div>
             </div>
         </div>

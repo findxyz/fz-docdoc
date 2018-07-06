@@ -118,7 +118,7 @@ public class HttpVerticle extends AbstractVerticle {
 
     private void docdocManageHandler(Router router) {
 
-        /* ===================== html ===================== */
+        /* ===================== manage html filter ===================== */
         router.route("/docdoc/manage/html/*").handler(routingContext -> {
             HttpServerResponse response = routingContext.response();
             response.putHeader("Content-Type", CONTENT_HTML);
@@ -130,33 +130,7 @@ public class HttpVerticle extends AbstractVerticle {
             }
         });
 
-        router.route("/docdoc/manage/html/user/*").handler(routingContext -> {
-            JsonObject curUserJsonObject = routingContext.session().get(CUR_USER);
-            String curUsername = curUserJsonObject.getString("userName");
-            if (!ADMIN_USER_NAME.equals(curUsername)) {
-                routingContext.response().end(ADMIN_REQUIRE_MESSAGE);
-            } else {
-                routingContext.next();
-            }
-        });
-
-        router.route("/docdoc/manage/html/home").handler(routingContext -> {
-            routingContext.response().sendFile("webroot/docdoc/manage/home.html");
-        });
-
-        router.route("/docdoc/manage/html/user/main").handler(routingContext -> {
-            routingContext.response().sendFile("webroot/docdoc/manage/user/main.html");
-        });
-
-        router.route("/docdoc/manage/html/user/add").handler(routingContext -> {
-            routingContext.response().sendFile("webroot/docdoc/manage/user/add.html");
-        });
-
-        router.route("/docdoc/manage/html/api/main").handler(routingContext -> {
-            routingContext.response().sendFile("webroot/docdoc/manage/api/main.html");
-        });
-
-        /* ===================== api ===================== */
+        /* ===================== manage api filter ===================== */
         router.route("/docdoc/manage/api/*").handler(routingContext -> {
             HttpServerResponse response = routingContext.response();
             response.putHeader("Content-Type", CONTENT_JSON);
@@ -168,6 +142,10 @@ public class HttpVerticle extends AbstractVerticle {
             }
         });
 
+        router.route("/docdoc/manage/html/home").handler(routingContext -> {
+            routingContext.response().sendFile("webroot/docdoc/manage/home.html");
+        });
+
         router.route("/docdoc/manage/api/login/info").handler(routingContext -> {
             JsonObject curUserJsonObject = routingContext.session().get(CUR_USER);
             Map<String, Object> userMap = new HashMap<>();
@@ -175,6 +153,24 @@ public class HttpVerticle extends AbstractVerticle {
             routingContext.response().end(Result.ofData(userMap).toString());
         });
 
+        userHandler(router);
+        docHandler(router);
+    }
+
+    private void userHandler(Router router) {
+
+        /* ===================== manage html user filter ===================== */
+        router.route("/docdoc/manage/html/user/*").handler(routingContext -> {
+            JsonObject curUserJsonObject = routingContext.session().get(CUR_USER);
+            String curUsername = curUserJsonObject.getString("userName");
+            if (!ADMIN_USER_NAME.equals(curUsername)) {
+                routingContext.response().end(ADMIN_REQUIRE_MESSAGE);
+            } else {
+                routingContext.next();
+            }
+        });
+
+        /* ===================== manage api user filter ===================== */
         router.route("/docdoc/manage/api/user/*").handler(routingContext -> {
             JsonObject curUserJsonObject = routingContext.session().get(CUR_USER);
             String curUsername = curUserJsonObject.getString("userName");
@@ -183,6 +179,14 @@ public class HttpVerticle extends AbstractVerticle {
             } else {
                 routingContext.next();
             }
+        });
+
+        router.route("/docdoc/manage/html/user/main").handler(routingContext -> {
+            routingContext.response().sendFile("webroot/docdoc/manage/user/main.html");
+        });
+
+        router.route("/docdoc/manage/html/user/add").handler(routingContext -> {
+            routingContext.response().sendFile("webroot/docdoc/manage/user/add.html");
         });
 
         router.route("/docdoc/manage/api/user/add").handler(routingContext -> {
@@ -199,6 +203,21 @@ public class HttpVerticle extends AbstractVerticle {
 
         router.route("/docdoc/manage/api/user/admin/update").handler(routingContext -> {
             EventBusUtil.jsonBus(vertx, routingContext, ServiceVerticle.USER_ADMIN_UPDATE);
+        });
+    }
+
+    private void docHandler(Router router) {
+
+        router.route("/docdoc/manage/html/doc/main").handler(routingContext -> {
+            routingContext.response().sendFile("webroot/docdoc/manage/doc/main.html");
+        });
+
+        router.route("/docdoc/manage/api/doc/project/add").handler(routingContext -> {
+            EventBusUtil.jsonBus(vertx, routingContext, ServiceVerticle.DOC_PROJECT_ADD);
+        });
+
+        router.route("/docdoc/manage/api/doc/project/list").handler(routingContext -> {
+            EventBusUtil.jsonBus(vertx, routingContext, ServiceVerticle.DOC_PROJECT_LIST);
         });
     }
 
