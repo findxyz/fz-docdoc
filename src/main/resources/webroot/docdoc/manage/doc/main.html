@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>api main</title>
+    <title>doc project main</title>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
     <link href="/pubs/layui-v2.2.6/layui/css/layui.css" rel="stylesheet"/>
@@ -127,6 +127,13 @@
                     templateData = [];
                 }
             }
+            $(".project-grid").click(function () {
+                var projectId = $(this).attr("projectId");
+                console.log(projectId);
+                if (projectId > -1) {
+                    window.location = "/docdoc/manage/html/doc/api/main?projectId=" + projectId;
+                }
+            });
         };
 
         $("#addBtn").click(function () {

@@ -142,6 +142,12 @@ public class HttpVerticle extends AbstractVerticle {
             }
         });
 
+        homeHandler(router);
+        userHandler(router);
+        docHandler(router);
+    }
+
+    private void homeHandler(Router router) {
         router.route("/docdoc/manage/html/home").handler(routingContext -> {
             routingContext.response().sendFile("webroot/docdoc/manage/home.html");
         });
@@ -152,9 +158,6 @@ public class HttpVerticle extends AbstractVerticle {
             userMap.put("userName", curUserJsonObject.getValue("userName"));
             routingContext.response().end(Result.ofData(userMap).toString());
         });
-
-        userHandler(router);
-        docHandler(router);
     }
 
     private void userHandler(Router router) {
@@ -207,9 +210,12 @@ public class HttpVerticle extends AbstractVerticle {
     }
 
     private void docHandler(Router router) {
-
         router.route("/docdoc/manage/html/doc/main").handler(routingContext -> {
             routingContext.response().sendFile("webroot/docdoc/manage/doc/main.html");
+        });
+
+        router.route("/docdoc/manage/html/doc/api/main").handler(routingContext -> {
+            routingContext.response().sendFile("webroot/docdoc/manage/doc/api/main.html");
         });
 
         router.route("/docdoc/manage/api/doc/project/add").handler(routingContext -> {
