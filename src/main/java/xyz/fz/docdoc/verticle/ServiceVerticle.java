@@ -24,6 +24,8 @@ public class ServiceVerticle extends AbstractVerticle {
 
     static final String DOC_PROJECT_ADD = "DOC_PROJECT_ADD";
     static final String DOC_PROJECT_LIST = "DOC_PROJECT_LIST";
+    static final String DOC_API_ADD = "DOC_API_ADD";
+    static final String DOC_API_LIST = "DOC_API_LIST";
 
     public ServiceVerticle(ApplicationContext context) {
         ReplyFactory.serviceInit(context);
@@ -39,6 +41,8 @@ public class ServiceVerticle extends AbstractVerticle {
 
         consumer(vertx, DOC_PROJECT_ADD);
         consumer(vertx, DOC_PROJECT_LIST);
+        consumer(vertx, DOC_API_ADD);
+        consumer(vertx, DOC_API_LIST);
     }
 
     private void consumer(Vertx vertx, String address) {
@@ -88,6 +92,10 @@ public class ServiceVerticle extends AbstractVerticle {
                     return docService.projectAdd(jsonObject);
                 case DOC_PROJECT_LIST:
                     return docService.projectList(jsonObject);
+                case DOC_API_ADD:
+                    return docService.apiAdd(jsonObject);
+                case DOC_API_LIST:
+                    return docService.apiList(jsonObject);
                 default:
                     throw new RuntimeException("EventBus address not found");
             }

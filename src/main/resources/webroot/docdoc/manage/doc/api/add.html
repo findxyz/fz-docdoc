@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>doc api add</title>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+    <link href="/pubs/layui-v2.3.0/layui/css/layui.css" rel="stylesheet"/>
+    <style type="text/css">
+        .layui-form-label {
+            width: 200px !important;
+        }
+
+        .layui-input-block {
+            margin-left: 200px !important;
+        }
+
+        .layui-input {
+            width: 500px;
+        }
+
+        body {
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+<form class="layui-form layui-form-pane" lay-filter="apiForm" id="apiForm" method="post"
+      action="/docdoc/manage/api/doc/api/add">
+    <input type="hidden" name="id" id="id" value="-1"/>
+    <input type="hidden" name="projectId" id="projectId" value="-1"/>
+    <div class="layui-form-item">
+        <label class="layui-form-label">内容类型</label>
+        <div class="layui-input-block">
+            <input type="radio" name="contentType" value="application/json" title="application/json" checked=""/>
+            <input type="radio" name="contentType" value="application/xml" title="application/xml"/>
+            <input type="radio" name="contentType" value="x-www-form-urlencoded" title="x-www-form-urlencoded"/>
+            <input type="radio" name="contentType" value="multipart/form-data" title="multipart/form-data"/>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">请求方法</label>
+        <div class="layui-input-block">
+            <input type="radio" name="requestMethod" value="POST" title="POST" checked=""/>
+            <input type="radio" name="requestMethod" value="GET" title="GET"/>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">数据类型</label>
+        <div class="layui-input-block">
+            <input type="radio" name="dataType" value="JSON" title="JSON" checked=""/>
+            <input type="radio" name="dataType" value="XML" title="XML"/>
+            <input type="radio" name="dataType" value="TEXT" title="TEXT"/>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">API名称</label>
+        <div class="layui-input-inline">
+            <input type="text" id="name" name="name" required="required" lay-verify="required"
+                   placeholder="API名称"
+                   autocomplete="off"
+                   class="layui-input"/>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">接口地址（相对）</label>
+        <div class="layui-input-inline">
+            <input type="text" id="requestUrl" name="requestUrl" required="required" lay-verify="required"
+                   placeholder="例如：/docdoc/manage/html/home"
+                   autocomplete="off"
+                   class="layui-input"/>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">认证类型</label>
+        <div class="layui-input-inline">
+            <input type="text" id="authType" name="authType" required="required" lay-verify="required"
+                   placeholder="TOKEN？JWT？SESSION？不认证？等等"
+                   autocomplete="off"
+                   class="layui-input"/>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <button class="layui-btn" lay-submit="submit" lay-filter="apiFormSubmit">立即提交</button>
+        <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+    </div>
+</form>
+
+<script type="text/javascript" src="/pubs/layui-v2.3.0/layui/layui.all.js"></script>
+<script type="text/javascript">
+    /*<![CDATA[*/
+    !function () {
+        var $ = layui.jquery;
+        var form = layui.form;
+        var layer = layui.layer;
+
+        function getParameterByName(name, url) {
+            if (!url) url = window.location.href;
+            name = name.replace(/[\[\]]/g, '\\$&');
+            var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+                results = regex.exec(url);
+            if (!results) return null;
+            if (!results[2]) return '';
+            return decodeURIComponent(results[2].replace(/\+/g, ' '));
+        }
+        var projectId = getParameterByName("projectId", window.location);
+        $("#projectId").val(projectId || -1);
+        var id = getParameterByName("id", window.location);
+        $("#id").val(id || -1);
+
+        form.on('submit(apiFormSubmit)', function (data) {
+            $.ajax("/docdoc/manage/api/doc/api/add", {
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(data.field),
+                dataType: 'json',
+                success: function (json) {
+                    if (json.success) {
+                        layer.msg("API添加成功");
+                        var $name = $("#name");
+                        $name.val("");
+                        $name.focus();
+                        $("#requestUrl").val("");
+                        $("#authType").val("");
+                    } else {
+                        layer.open({time: 5000, content: '<div>' + json.message + '</div>'});
+                    }
+                }
+            });
+            return false;
+        });
+
+        $("#name").focus();
+    }();
+    /*]]>*/
+</script>
+</body>
+</html>

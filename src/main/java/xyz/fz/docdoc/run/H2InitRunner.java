@@ -79,8 +79,8 @@ public class H2InitRunner implements Runnable {
         fieldList.add("requestMethod VARCHAR(10), ");
         fieldList.add("dataType VARCHAR(20), ");
         fieldList.add("author VARCHAR(30), ");
-        fieldList.add("createTime DATE, ");
-        fieldList.add("updateTime DATE, ");
+        fieldList.add("createTime DATETIME, ");
+        fieldList.add("updateTime DATETIME, ");
         fieldList.add("requestExample VARCHAR(1000), ");
         fieldList.add("responseExample VARCHAR(5000), ");
         fieldList.add("status VARCHAR(20), ");
@@ -98,7 +98,7 @@ public class H2InitRunner implements Runnable {
         fieldList.add("name VARCHAR(50), ");
         fieldList.add("paramType VARCHAR(10), ");
         fieldList.add("required INT, ");
-        fieldList.add("updateTime DATE, ");
+        fieldList.add("updateTime DATETIME, ");
         fieldList.add("version BIGINT, ");
         fieldList.add("isActivity INT ");
         initTable("t_doc_api_field", fieldList);
@@ -109,7 +109,7 @@ public class H2InitRunner implements Runnable {
         fieldList.add("id BIGINT AUTO_INCREMENT(0, 1) PRIMARY KEY, ");
         fieldList.add("apiId BIGINT, ");
         fieldList.add("author VARCHAR(30), ");
-        fieldList.add("createTime DATE, ");
+        fieldList.add("createTime DATETIME, ");
         fieldList.add("reason VARCHAR(500), ");
         fieldList.add("isActivity INT ");
         initTable("t_doc_api_log", fieldList);
@@ -121,7 +121,7 @@ public class H2InitRunner implements Runnable {
         fieldList.add("apiId BIGINT, ");
         fieldList.add("ip VARCHAR(30), ");
         fieldList.add("responseExample VARCHAR(5000), ");
-        fieldList.add("updateTime DATE ");
+        fieldList.add("updateTime DATETIME ");
         initTable("t_doc_api_response_example", fieldList);
     }
 

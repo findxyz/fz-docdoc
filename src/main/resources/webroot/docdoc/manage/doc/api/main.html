@@ -1,10 +1,138 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
     <title>doc api main</title>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+    <link href="/pubs/layui-v2.3.0/layui/css/layui.css" rel="stylesheet"/>
 </head>
 <body>
-doc api main
+
+<div>
+    <button class="layui-btn layui-btn-primary" id="back"><i class="layui-icon">&#xe603;</i></button>
+    <button class="layui-btn" id="addBtn">新增API</button>
+    <button class="layui-btn layui-btn-normal" id="searchBtn">查询</button>
+</div>
+
+<form class="layui-form layui-form-pane" style="margin-top: 5px;">
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label class="layui-form-label">API名称</label>
+            <div class="layui-input-block">
+                <input type="text" name="name" id="name" autocomplete="off" class="layui-input"/>
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label">状态</label>
+            <div class="layui-input-inline">
+                <select id="status" name="status">
+                    <option value="">全部</option>
+                    <option value="develop">开发中</option>
+                    <option value="developDone">开发完成</option>
+                    <option value="testDone">测试完成</option>
+                    <option value="deprecated">已过时</option>
+                </select>
+            </div>
+        </div>
+    </div>
+</form>
+
+<table class="layui-table" id="apiList" lay-filter="apiList"></table>
+
+<script type="text/html" id="toolBar">
+    <a class="layui-btn layui-btn-normal layui-btn-xs" lay-event="detail">查看</a>
+    <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+</script>
+
+<script type="text/javascript" src="/pubs/layui-v2.3.0/layui/layui.all.js"></script>
+<script type="text/html" id="statusTpl">
+    {{# if (d.status === 'develop') { }}
+    <span style="color: #1E9FFF;">开发中</span>
+    {{# } else if (d.status === 'developDone') { }}
+    <span style="color: blue">开发完成</span>
+    {{# } else if (d.status === 'testDone') { }}
+    <span style="color: green;">测试完成</span>
+    {{# } else if (d.status === 'deprecated') { }}
+    <span style="color: gray;">已过时</span>
+    {{# } else { }}
+    <span style="color: red;">异常状态</span>
+    {{# } }}
+</script>
+<script type="text/javascript">
+    /*<![CDATA[*/
+    !function () {
+        var $ = layui.jquery;
+        var table = layui.table;
+        var layer = layui.layer;
+
+        function getParameterByName(name, url) {
+            if (!url) url = window.location.href;
+            name = name.replace(/[\[\]]/g, '\\$&');
+            var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+                results = regex.exec(url);
+            if (!results) return null;
+            if (!results[2]) return '';
+            return decodeURIComponent(results[2].replace(/\+/g, ' '));
+        }
+
+        var projectId = getParameterByName("projectId", window.location);
+
+        table.render({
+            elem: '#apiList'
+            , width: '1200px'
+            , url: '/docdoc/manage/api/doc/api/list'
+            , cellMinWidth: 80
+            , cols: [[
+                {field: 'id', width: 80, title: 'ID'}
+                , {field: 'name', width: 180, title: 'API名称'}
+                , {field: 'requestUrl', width: 220, title: '接口地址'}
+                , {field: 'status', width: 180, title: '状态', templet: '#statusTpl'}
+                , {field: 'updateTime', width: 220, title: '更新时间'}
+                , {width: 200, title: '操作', align: 'center', toolbar: '#toolBar'}
+            ]]
+        });
+
+        table.on('tool(apiList)', function (obj) {
+            var data = obj.data;
+            if (obj.event === 'detail') {
+            } else if (obj.event === 'edit') {
+            } else if (obj.event === 'del') {
+            }
+        });
+
+        var tableReload = function () {
+            table.reload('apiList', {
+                where: {
+                    name: $("#name").val(),
+                    status: $("#status").val()
+                }
+            });
+        };
+
+        $("#addBtn").click(function () {
+            layer.open({
+                type: 2,
+                title: '新增API',
+                shadeClose: true,
+                shade: 0.8,
+                area: ['95%', '95%'],
+                content: '/docdoc/manage/html/doc/api/add?projectId=' + projectId,
+                cancel: function () {
+                    tableReload();
+                }
+            });
+        });
+
+        $("#back").click(function () {
+            window.location = "/docdoc/manage/html/doc/main";
+        });
+
+        $("#searchBtn").click(function () {
+            tableReload();
+        });
+    }();
+    /*]]>*/
+</script>
 </body>
 </html>

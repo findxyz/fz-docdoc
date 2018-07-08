@@ -279,12 +279,27 @@ public class HttpVerticle extends AbstractVerticle {
             routingContext.response().sendFile("webroot/docdoc/manage/doc/api/main.html");
         });
 
+        router.route("/docdoc/manage/html/doc/api/add").handler(routingContext -> {
+            routingContext.response().sendFile("webroot/docdoc/manage/doc/api/add.html");
+        });
+
         router.route("/docdoc/manage/api/doc/project/add").handler(routingContext -> {
             EventBusUtil.jsonBus(vertx, routingContext, ServiceVerticle.DOC_PROJECT_ADD);
         });
 
         router.route("/docdoc/manage/api/doc/project/list").handler(routingContext -> {
-            EventBusUtil.jsonBus(vertx, routingContext, ServiceVerticle.DOC_PROJECT_LIST);
+            EventBusUtil.formBus(vertx, routingContext, ServiceVerticle.DOC_PROJECT_LIST);
+        });
+
+        router.route("/docdoc/manage/api/doc/api/add").handler(routingContext -> {
+            JsonObject curUserJsonObject = routingContext.session().get(CUR_USER);
+            JsonObject authorJsonObject = new JsonObject();
+            authorJsonObject.put("author", curUserJsonObject.getValue("userName"));
+            EventBusUtil.jsonBus(vertx, routingContext, ServiceVerticle.DOC_API_ADD, authorJsonObject);
+        });
+
+        router.route("/docdoc/manage/api/doc/api/list").handler(routingContext -> {
+            EventBusUtil.formBus(vertx, routingContext, ServiceVerticle.DOC_API_LIST);
         });
     }
 

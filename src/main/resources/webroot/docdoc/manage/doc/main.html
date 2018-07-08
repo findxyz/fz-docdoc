@@ -4,7 +4,7 @@
     <title>doc project main</title>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
-    <link href="/pubs/layui-v2.2.6/layui/css/layui.css" rel="stylesheet"/>
+    <link href="/pubs/layui-v2.3.0/layui/css/layui.css" rel="stylesheet"/>
     <style>
         .layui-card {
             height: 216px;
@@ -67,7 +67,7 @@
     </div>
 </div>
 
-<script type="text/javascript" src="/pubs/layui-v2.2.6/layui/layui.all.js"></script>
+<script type="text/javascript" src="/pubs/layui-v2.3.0/layui/layui.all.js"></script>
 <script type="text/javascript">
     /*<![CDATA[*/
     !function () {
@@ -129,7 +129,6 @@
             }
             $(".project-grid").click(function () {
                 var projectId = $(this).attr("projectId");
-                console.log(projectId);
                 if (projectId > -1) {
                     window.location = "/docdoc/manage/html/doc/api/main?projectId=" + projectId;
                 }
