@@ -81,7 +81,7 @@
     </div>
     <div class="layui-form-item">
         <button class="layui-btn" lay-submit="submit" lay-filter="apiFormSubmit">立即提交</button>
-        <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+        <button id="resetBtn" type="reset" class="layui-btn layui-btn-primary">重置</button>
     </div>
 </form>
 
@@ -102,10 +102,48 @@
             if (!results[2]) return '';
             return decodeURIComponent(results[2].replace(/\+/g, ' '));
         }
+
         var projectId = getParameterByName("projectId", window.location);
         $("#projectId").val(projectId || -1);
         var id = getParameterByName("id", window.location);
         $("#id").val(id || -1);
+
+        var loadEditData = function (id) {
+            if (id) {
+                $.ajax("/docdoc/manage/api/doc/api/edit", {
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({id: id}),
+                    dataType: 'json',
+                    success: function (json) {
+                        if (json.success) {
+                            $('[name=contentType]').each(function (i, item) {
+                                if ($(item).val() === json.data.contentType) {
+                                    $(item).prop('checked', true);
+                                }
+                            });
+                            $('[name=requestMethod]').each(function (i, item) {
+                                if ($(item).val() === json.data.requestMethod) {
+                                    $(item).prop('checked', true);
+                                }
+                            });
+                            $('[name=dataType]').each(function (i, item) {
+                                if ($(item).val() === json.data.dataType) {
+                                    $(item).prop('checked', true);
+                                }
+                            });
+                            $("#name").val(json.data.name);
+                            $("#requestUrl").val(json.data.requestUrl);
+                            $("#authType").val(json.data.authType);
+                            form.render();
+                        } else {
+                            layer.open({time: 5000, content: '<div>' + json.message + '</div>'});
+                        }
+                    }
+                });
+            }
+        };
+        loadEditData(id);
 
         form.on('submit(apiFormSubmit)', function (data) {
             $.ajax("/docdoc/manage/api/doc/api/add", {
@@ -115,12 +153,32 @@
                 dataType: 'json',
                 success: function (json) {
                     if (json.success) {
-                        layer.msg("API添加成功");
-                        var $name = $("#name");
-                        $name.val("");
-                        $name.focus();
-                        $("#requestUrl").val("");
-                        $("#authType").val("");
+                        layer.msg("API保存成功");
+                        var nowContentType = $('[name=contentType]:checked').val();
+                        var nowRequestMethod = $('[name=requestMethod]:checked').val();
+                        var nowDataType = $('[name=dataType]:checked').val();
+                        $("#resetBtn").click();
+                        $('[name=contentType]').each(function (i, item) {
+                            if ($(item).val() === nowContentType) {
+                                $(item).prop('checked', true);
+                            }
+                        });
+                        $('[name=requestMethod]').each(function (i, item) {
+                            if ($(item).val() === nowRequestMethod) {
+                                $(item).prop('checked', true);
+                            }
+                        });
+                        $('[name=dataType]').each(function (i, item) {
+                            if ($(item).val() === nowDataType) {
+                                $(item).prop('checked', true);
+                            }
+                        });
+                        form.render();
+                        $("#name").focus();
+                        if (id) {
+                            parent.document.getElementById("searchBtn").click();
+                            parent.document.getElementById("popClose").click();
+                        }
                     } else {
                         layer.open({time: 5000, content: '<div>' + json.message + '</div>'});
                     }

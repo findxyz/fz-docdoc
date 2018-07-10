@@ -12,6 +12,7 @@
     <button class="layui-btn layui-btn-primary" id="back"><i class="layui-icon">&#xe603;</i></button>
     <button class="layui-btn" id="addBtn">新增API</button>
     <button class="layui-btn layui-btn-normal" id="searchBtn">查询</button>
+    <span style="display: none" id="popClose"></span>
 </div>
 
 <form class="layui-form layui-form-pane" style="margin-top: 5px;">
@@ -97,6 +98,17 @@
             var data = obj.data;
             if (obj.event === 'detail') {
             } else if (obj.event === 'edit') {
+                layer.open({
+                    type: 2,
+                    title: '修改API',
+                    shadeClose: true,
+                    shade: 0.8,
+                    area: ['95%', '95%'],
+                    content: '/docdoc/manage/html/doc/api/add?id=' + data.id,
+                    cancel: function () {
+                        tableReload();
+                    }
+                });
             } else if (obj.event === 'del') {
             }
         });
@@ -130,6 +142,10 @@
 
         $("#searchBtn").click(function () {
             tableReload();
+        });
+
+        $("#popClose").click(function () {
+            layer.closeAll();
         });
     }();
     /*]]>*/

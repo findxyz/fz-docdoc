@@ -130,4 +130,15 @@ public class DocServiceImpl implements DocService {
         result.put("count", list.size());
         return result;
     }
+
+    @Override
+    public JsonObject apiEdit(JsonObject jsonObject) {
+        Long id = Long.valueOf(jsonObject.getValue("id").toString());
+        Optional<Api> fApi = apiRepository.findById(id);
+        if (fApi.isPresent()) {
+            return Result.ofData(JsonObject.mapFrom(fApi.get()));
+        } else {
+            throw new RuntimeException("API文档不存在");
+        }
+    }
 }

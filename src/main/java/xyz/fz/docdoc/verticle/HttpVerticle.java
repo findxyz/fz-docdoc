@@ -301,6 +301,10 @@ public class HttpVerticle extends AbstractVerticle {
         router.route("/docdoc/manage/api/doc/api/list").handler(routingContext -> {
             EventBusUtil.formBus(vertx, routingContext, ServiceVerticle.DOC_API_LIST);
         });
+
+        router.route("/docdoc/manage/api/doc/api/edit").handler(routingContext -> {
+            EventBusUtil.jsonBus(vertx, routingContext, ServiceVerticle.DOC_API_EDIT);
+        });
     }
 
     private void docdocMappingHandler(Router router) {
