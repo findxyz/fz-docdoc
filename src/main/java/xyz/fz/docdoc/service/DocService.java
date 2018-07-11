@@ -12,4 +12,8 @@ public interface DocService {
     JsonObject apiList(JsonObject jsonObject);
 
     JsonObject apiEdit(JsonObject jsonObject);
+
+    JsonObject apiDel(JsonObject jsonObject);
+
+    JsonObject apiStatus(JsonObject jsonObject);
 }

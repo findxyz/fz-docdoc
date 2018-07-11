@@ -83,6 +83,7 @@
             elem: '#apiList'
             , width: '1200px'
             , url: '/docdoc/manage/api/doc/api/list'
+            , where: {projectId: projectId}
             , cellMinWidth: 80
             , cols: [[
                 {field: 'id', width: 80, title: 'ID'}
@@ -116,6 +117,7 @@
         var tableReload = function () {
             table.reload('apiList', {
                 where: {
+                    projectId: projectId,
                     name: $("#name").val(),
                     status: $("#status").val()
                 }

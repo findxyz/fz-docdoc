@@ -16,17 +16,36 @@ public class ServiceVerticle extends AbstractVerticle {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ServiceVerticle.class);
 
-    static final String USER_ADD = "USER_ADD";
-    static final String USER_LOGIN = "USER_LOGIN";
-    static final String USER_LIST = "USER_LIST";
-    static final String USER_DEL = "USER_DEL";
-    static final String USER_ADMIN_UPDATE = "USER_ADMIN_UPDATE";
+    public enum Address {
 
-    static final String DOC_PROJECT_ADD = "DOC_PROJECT_ADD";
-    static final String DOC_PROJECT_LIST = "DOC_PROJECT_LIST";
-    static final String DOC_API_ADD = "DOC_API_ADD";
-    static final String DOC_API_LIST = "DOC_API_LIST";
-    static final String DOC_API_EDIT = "DOC_API_EDIT";
+        /**
+         * EventBus 通讯地址
+         */
+        USER_ADD("USER_ADD"),
+        USER_LOGIN("USER_LOGIN"),
+        USER_LIST("USER_LIST"),
+        USER_DEL("USER_DEL"),
+        USER_ADMIN_UPDATE("USER_ADMIN_UPDATE"),
+
+        DOC_PROJECT_ADD("DOC_PROJECT_ADD"),
+        DOC_PROJECT_LIST("DOC_PROJECT_LIST"),
+        DOC_API_ADD("DOC_API_ADD"),
+        DOC_API_LIST("DOC_API_LIST"),
+        DOC_API_EDIT("DOC_API_EDIT"),
+        DOC_API_DEL("DOC_API_DEL"),
+        DOC_API_STATUS("DOC_API_STATUS");
+
+        private String address;
+
+        Address(String address) {
+            this.address = address;
+        }
+
+        @Override
+        public String toString() {
+            return address;
+        }
+    }
 
     public ServiceVerticle(ApplicationContext context) {
         ReplyFactory.serviceInit(context);
@@ -34,21 +53,14 @@ public class ServiceVerticle extends AbstractVerticle {
 
     @Override
     public void start() {
-        consumer(vertx, USER_ADD);
-        consumer(vertx, USER_LOGIN);
-        consumer(vertx, USER_LIST);
-        consumer(vertx, USER_DEL);
-        consumer(vertx, USER_ADMIN_UPDATE);
-
-        consumer(vertx, DOC_PROJECT_ADD);
-        consumer(vertx, DOC_PROJECT_LIST);
-        consumer(vertx, DOC_API_ADD);
-        consumer(vertx, DOC_API_LIST);
-        consumer(vertx, DOC_API_EDIT);
+        Address[] allAddress = Address.values();
+        for (Address address : allAddress) {
+            consumer(vertx, address);
+        }
     }
 
-    private void consumer(Vertx vertx, String address) {
-        vertx.eventBus().consumer(address, msg -> {
+    private void consumer(Vertx vertx, Address address) {
+        vertx.eventBus().consumer(address.toString(), msg -> {
             try {
                 JsonObject replyJsonObject = ReplyFactory.reply(address, (JsonObject) msg.body());
                 String replyJsonString = replyJsonObject != null ? replyJsonObject.toString() : Result.ofSuccess().toString();
@@ -75,7 +87,7 @@ public class ServiceVerticle extends AbstractVerticle {
             }
         }
 
-        private static JsonObject reply(String address, JsonObject jsonObject) {
+        private static JsonObject reply(Address address, JsonObject jsonObject) {
             if (!init) {
                 throw new RuntimeException("ReplyFactory 没有初始化");
             }
@@ -100,6 +112,10 @@ public class ServiceVerticle extends AbstractVerticle {
                     return docService.apiList(jsonObject);
                 case DOC_API_EDIT:
                     return docService.apiEdit(jsonObject);
+                case DOC_API_DEL:
+                    return docService.apiDel(jsonObject);
+                case DOC_API_STATUS:
+                    return docService.apiStatus(jsonObject);
                 default:
                     throw new RuntimeException("EventBus address not found");
             }

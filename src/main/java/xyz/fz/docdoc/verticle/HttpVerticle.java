@@ -6,6 +6,7 @@ import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.Session;
+import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.CookieHandler;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.handler.StaticHandler;
@@ -58,6 +59,7 @@ public class HttpVerticle extends AbstractVerticle {
 
         sessionHandler(router);
         staticHandler(router);
+        bodyHandler(router);
         indexLoginLogoutHandler(router);
         docdocManageHandler(router);
         docdocMappingHandler(router);
@@ -77,6 +79,21 @@ public class HttpVerticle extends AbstractVerticle {
         router.route().handler(sessionHandler);
     }
 
+    private void staticHandler(Router router) {
+        router.route("/pubs/*").handler(routingContext -> {
+            if (routingContext.request().uri().contains(STATIC_HTML)) {
+                routingContext.response().putHeader("location", "/").setStatusCode(302).end();
+            } else {
+                routingContext.next();
+            }
+        });
+        router.route("/pubs/*").handler(StaticHandler.create());
+    }
+
+    private void bodyHandler(Router router) {
+        router.route().handler(BodyHandler.create());
+    }
+
     private static void loginUser(JsonObject curUser, Session session) {
         logoutUser(curUser.getString("userName"));
         session.put(CUR_USER, curUser);
@@ -94,17 +111,6 @@ public class HttpVerticle extends AbstractVerticle {
         }
     }
 
-    private void staticHandler(Router router) {
-        router.route("/pubs/*").handler(routingContext -> {
-            if (routingContext.request().uri().contains(STATIC_HTML)) {
-                routingContext.response().putHeader("location", "/").setStatusCode(302).end();
-            } else {
-                routingContext.next();
-            }
-        });
-        router.route("/pubs/*").handler(StaticHandler.create());
-    }
-
     private void indexLoginLogoutHandler(Router router) {
         router.route("/").handler(routingContext -> {
             routingContext.response().putHeader("Content-Type", CONTENT_HTML).sendFile("webroot/login.html");
@@ -113,24 +119,22 @@ public class HttpVerticle extends AbstractVerticle {
         router.route("/doLogin").handler(routingContext -> {
             HttpServerResponse response = routingContext.response();
             response.putHeader("Content-Type", CONTENT_JSON);
-            routingContext.request().bodyHandler(event -> {
-                try {
-                    vertx.eventBus().send(ServiceVerticle.USER_LOGIN, new JsonObject(event.toString()), asyncResult -> {
-                        String result;
-                        if (asyncResult.succeeded()) {
-                            JsonObject curUser = new JsonObject(asyncResult.result().body().toString());
-                            loginUser(curUser, routingContext.session());
-                            result = Result.ofSuccess().toString();
-                        } else {
-                            result = Result.ofMessage(asyncResult.cause().getMessage()).toString();
-                        }
-                        response.end(result);
-                    });
-                } catch (Exception e) {
-                    LOGGER.error(BaseUtil.getExceptionStackTrace(e));
-                    response.end(Result.ofMessage(e.getMessage()).toString());
-                }
-            });
+            try {
+                vertx.eventBus().send(ServiceVerticle.Address.USER_LOGIN.toString(), routingContext.getBodyAsJson(), asyncResult -> {
+                    String result;
+                    if (asyncResult.succeeded()) {
+                        JsonObject curUser = new JsonObject(asyncResult.result().body().toString());
+                        loginUser(curUser, routingContext.session());
+                        result = Result.ofSuccess().toString();
+                    } else {
+                        result = Result.ofMessage(asyncResult.cause().getMessage()).toString();
+                    }
+                    response.end(result);
+                });
+            } catch (Exception e) {
+                LOGGER.error(BaseUtil.getExceptionStackTrace(e));
+                response.end(Result.ofMessage(e.getMessage()).toString());
+            }
         });
 
         router.route("/doLogout").handler(routingContext -> {
@@ -219,54 +223,50 @@ public class HttpVerticle extends AbstractVerticle {
         });
 
         router.route("/docdoc/manage/api/user/add").handler(routingContext -> {
-            EventBusUtil.jsonBus(vertx, routingContext, ServiceVerticle.USER_ADD);
+            EventBusUtil.jsonBus(vertx, routingContext, ServiceVerticle.Address.USER_ADD);
         });
 
         router.route("/docdoc/manage/api/user/list").handler(routingContext -> {
-            EventBusUtil.formBus(vertx, routingContext, ServiceVerticle.USER_LIST);
+            EventBusUtil.formBus(vertx, routingContext, ServiceVerticle.Address.USER_LIST);
         });
 
         router.route("/docdoc/manage/api/user/del").handler(routingContext -> {
-            routingContext.request().bodyHandler(event -> {
-                try {
-                    JsonObject eventJsonObject = new JsonObject(event.toString());
-                    vertx.eventBus().send(ServiceVerticle.USER_DEL, eventJsonObject, asyncResult -> {
-                        String result;
-                        if (asyncResult.succeeded()) {
-                            JsonObject replyJsonObject = new JsonObject(asyncResult.result().body().toString());
-                            logoutUser(replyJsonObject.getString("data"));
-                            result = asyncResult.result().body().toString();
-                        } else {
-                            result = Result.ofMessage(asyncResult.cause().getMessage()).toString();
-                        }
-                        routingContext.response().end(result);
-                    });
-                } catch (Exception e) {
-                    LOGGER.error(BaseUtil.getExceptionStackTrace(e));
-                    routingContext.response().end(Result.ofMessage(e.getMessage()).toString());
-                }
-            });
+            try {
+                JsonObject eventJsonObject = routingContext.getBodyAsJson();
+                vertx.eventBus().send(ServiceVerticle.Address.USER_DEL.toString(), eventJsonObject, asyncResult -> {
+                    String result;
+                    if (asyncResult.succeeded()) {
+                        JsonObject replyJsonObject = new JsonObject(asyncResult.result().body().toString());
+                        logoutUser(replyJsonObject.getString("data"));
+                        result = asyncResult.result().body().toString();
+                    } else {
+                        result = Result.ofMessage(asyncResult.cause().getMessage()).toString();
+                    }
+                    routingContext.response().end(result);
+                });
+            } catch (Exception e) {
+                LOGGER.error(BaseUtil.getExceptionStackTrace(e));
+                routingContext.response().end(Result.ofMessage(e.getMessage()).toString());
+            }
         });
 
         router.route("/docdoc/manage/api/user/admin/update").handler(routingContext -> {
-            routingContext.request().bodyHandler(event -> {
-                try {
-                    JsonObject eventJsonObject = new JsonObject(event.toString());
-                    vertx.eventBus().send(ServiceVerticle.USER_ADMIN_UPDATE, eventJsonObject, asyncResult -> {
-                        String result;
-                        if (asyncResult.succeeded()) {
-                            logoutUser("admin");
-                            result = asyncResult.result().body().toString();
-                        } else {
-                            result = Result.ofMessage(asyncResult.cause().getMessage()).toString();
-                        }
-                        routingContext.response().end(result);
-                    });
-                } catch (Exception e) {
-                    LOGGER.error(BaseUtil.getExceptionStackTrace(e));
-                    routingContext.response().end(Result.ofMessage(e.getMessage()).toString());
-                }
-            });
+            try {
+                JsonObject eventJsonObject = routingContext.getBodyAsJson();
+                vertx.eventBus().send(ServiceVerticle.Address.USER_ADMIN_UPDATE.toString(), eventJsonObject, asyncResult -> {
+                    String result;
+                    if (asyncResult.succeeded()) {
+                        logoutUser("admin");
+                        result = asyncResult.result().body().toString();
+                    } else {
+                        result = Result.ofMessage(asyncResult.cause().getMessage()).toString();
+                    }
+                    routingContext.response().end(result);
+                });
+            } catch (Exception e) {
+                LOGGER.error(BaseUtil.getExceptionStackTrace(e));
+                routingContext.response().end(Result.ofMessage(e.getMessage()).toString());
+            }
         });
     }
 
@@ -284,26 +284,34 @@ public class HttpVerticle extends AbstractVerticle {
         });
 
         router.route("/docdoc/manage/api/doc/project/add").handler(routingContext -> {
-            EventBusUtil.jsonBus(vertx, routingContext, ServiceVerticle.DOC_PROJECT_ADD);
+            EventBusUtil.jsonBus(vertx, routingContext, ServiceVerticle.Address.DOC_PROJECT_ADD);
         });
 
         router.route("/docdoc/manage/api/doc/project/list").handler(routingContext -> {
-            EventBusUtil.formBus(vertx, routingContext, ServiceVerticle.DOC_PROJECT_LIST);
+            EventBusUtil.formBus(vertx, routingContext, ServiceVerticle.Address.DOC_PROJECT_LIST);
         });
 
         router.route("/docdoc/manage/api/doc/api/add").handler(routingContext -> {
             JsonObject curUserJsonObject = routingContext.session().get(CUR_USER);
             JsonObject authorJsonObject = new JsonObject();
             authorJsonObject.put("author", curUserJsonObject.getValue("userName"));
-            EventBusUtil.jsonBus(vertx, routingContext, ServiceVerticle.DOC_API_ADD, authorJsonObject);
+            EventBusUtil.jsonBus(vertx, routingContext, ServiceVerticle.Address.DOC_API_ADD, authorJsonObject);
         });
 
         router.route("/docdoc/manage/api/doc/api/list").handler(routingContext -> {
-            EventBusUtil.formBus(vertx, routingContext, ServiceVerticle.DOC_API_LIST);
+            EventBusUtil.formBus(vertx, routingContext, ServiceVerticle.Address.DOC_API_LIST);
         });
 
         router.route("/docdoc/manage/api/doc/api/edit").handler(routingContext -> {
-            EventBusUtil.jsonBus(vertx, routingContext, ServiceVerticle.DOC_API_EDIT);
+            EventBusUtil.jsonBus(vertx, routingContext, ServiceVerticle.Address.DOC_API_EDIT);
+        });
+
+        router.route("/docdoc/manage/api/doc/api/del").handler(routingContext -> {
+            EventBusUtil.jsonBus(vertx, routingContext, ServiceVerticle.Address.DOC_API_DEL);
+        });
+
+        router.route("/docdoc/manage/api/doc/api/status").handler(routingContext -> {
+            EventBusUtil.jsonBus(vertx, routingContext, ServiceVerticle.Address.DOC_API_STATUS);
         });
     }
 

@@ -102,9 +102,12 @@ public class DocServiceImpl implements DocService {
     public JsonObject apiList(JsonObject jsonObject) {
         String name = jsonObject.getString("name");
         String status = jsonObject.getString("status");
+        Long projectId = Long.valueOf(jsonObject.getValue("projectId").toString());
         Map<String, Object> params = new HashMap<>();
         String sql = "";
         sql += "select d.id as id, d.name as name, d.requestUrl as requestUrl, d.status as status, d.updateTime as updateTime from t_doc_api d where 1=1 and d.isActivity = 1 ";
+        sql += "and d.projectId = :projectId ";
+        params.put("projectId", projectId);
         if (StringUtils.isNotBlank(name)) {
             sql += "and d.name like concat(:name, '%') ";
             params.put("name", name);
@@ -137,6 +140,32 @@ public class DocServiceImpl implements DocService {
         Optional<Api> fApi = apiRepository.findById(id);
         if (fApi.isPresent()) {
             return Result.ofData(JsonObject.mapFrom(fApi.get()));
+        } else {
+            throw new RuntimeException("API文档不存在");
+        }
+    }
+
+    @Override
+    public JsonObject apiDel(JsonObject jsonObject) {
+        try {
+            Long id = Long.valueOf(jsonObject.getValue("id").toString());
+            apiRepository.deleteById(id);
+            return Result.ofSuccess();
+        } catch (Exception e) {
+            throw new RuntimeException("API文档不存在");
+        }
+    }
+
+    @Override
+    public JsonObject apiStatus(JsonObject jsonObject) {
+        Long id = Long.valueOf(jsonObject.getValue("id").toString());
+        String status = jsonObject.getString("status");
+        Optional<Api> fApi = apiRepository.findById(id);
+        if (fApi.isPresent()) {
+            Api api = fApi.get();
+            api.setStatus(status);
+            apiRepository.save(api);
+            return Result.ofSuccess();
         } else {
             throw new RuntimeException("API文档不存在");
         }
