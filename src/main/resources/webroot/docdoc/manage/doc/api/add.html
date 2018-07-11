@@ -154,6 +154,10 @@
                 success: function (json) {
                     if (json.success) {
                         layer.msg("API保存成功");
+                        if (id) {
+                            parent.document.getElementById("searchBtn").click();
+                            parent.document.getElementById("popCloseBtn").click();
+                        }
                         var nowContentType = $('[name=contentType]:checked').val();
                         var nowRequestMethod = $('[name=requestMethod]:checked').val();
                         var nowDataType = $('[name=dataType]:checked').val();
@@ -175,10 +179,6 @@
                         });
                         form.render();
                         $("#name").focus();
-                        if (id) {
-                            parent.document.getElementById("searchBtn").click();
-                            parent.document.getElementById("popClose").click();
-                        }
                     } else {
                         layer.open({time: 5000, content: '<div>' + json.message + '</div>'});
                     }

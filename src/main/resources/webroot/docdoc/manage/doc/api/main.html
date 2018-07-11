@@ -12,7 +12,7 @@
     <button class="layui-btn layui-btn-primary" id="back"><i class="layui-icon">&#xe603;</i></button>
     <button class="layui-btn" id="addBtn">新增API</button>
     <button class="layui-btn layui-btn-normal" id="searchBtn">查询</button>
-    <span style="display: none" id="popClose"></span>
+    <span style="display: none" id="popCloseBtn"></span>
 </div>
 
 <form class="layui-form layui-form-pane" style="margin-top: 5px;">
@@ -144,7 +144,7 @@
             tableReload();
         });
 
-        $("#popClose").click(function () {
+        $("#popCloseBtn").click(function () {
             layer.closeAll();
         });
     }();
