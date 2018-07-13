@@ -8,17 +8,17 @@ import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import xyz.fz.docdoc.entity.User;
 import xyz.fz.docdoc.model.Result;
 import xyz.fz.docdoc.repository.UserRepository;
 import xyz.fz.docdoc.service.UserService;
 
-import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 
 @Service
-@Transactional(rollbackOn = Exception.class)
+@Transactional(rollbackFor = Exception.class)
 public class UserServiceImpl implements UserService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UserServiceImpl.class);

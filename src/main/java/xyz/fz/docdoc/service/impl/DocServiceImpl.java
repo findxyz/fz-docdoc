@@ -11,6 +11,7 @@ import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.Sort;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import xyz.fz.docdoc.entity.Api;
 import xyz.fz.docdoc.entity.Project;
 import xyz.fz.docdoc.model.Result;
@@ -18,11 +19,10 @@ import xyz.fz.docdoc.repository.ApiRepository;
 import xyz.fz.docdoc.repository.ProjectRepository;
 import xyz.fz.docdoc.service.DocService;
 
-import javax.transaction.Transactional;
 import java.util.*;
 
 @Service
-@Transactional(rollbackOn = Exception.class)
+@Transactional(rollbackFor = Exception.class)
 public class DocServiceImpl implements DocService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DocServiceImpl.class);
