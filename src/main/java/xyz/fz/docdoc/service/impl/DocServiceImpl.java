@@ -13,8 +13,10 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import xyz.fz.docdoc.entity.Api;
+import xyz.fz.docdoc.entity.ApiField;
 import xyz.fz.docdoc.entity.Project;
 import xyz.fz.docdoc.model.Result;
+import xyz.fz.docdoc.repository.ApiFieldRepository;
 import xyz.fz.docdoc.repository.ApiRepository;
 import xyz.fz.docdoc.repository.ProjectRepository;
 import xyz.fz.docdoc.service.DocService;
@@ -31,12 +33,15 @@ public class DocServiceImpl implements DocService {
 
     private final ApiRepository apiRepository;
 
+    private final ApiFieldRepository apiFieldRepository;
+
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     @Autowired
-    public DocServiceImpl(ProjectRepository projectRepository, ApiRepository apiRepository, NamedParameterJdbcTemplate namedParameterJdbcTemplate) {
+    public DocServiceImpl(ProjectRepository projectRepository, ApiRepository apiRepository, ApiFieldRepository apiFieldRepository, NamedParameterJdbcTemplate namedParameterJdbcTemplate) {
         this.projectRepository = projectRepository;
         this.apiRepository = apiRepository;
+        this.apiFieldRepository = apiFieldRepository;
         this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
     }
 
@@ -169,5 +174,37 @@ public class DocServiceImpl implements DocService {
         } else {
             throw new RuntimeException("API文档不存在");
         }
+    }
+
+    @Override
+    public JsonObject apiFieldAdd(JsonObject jsonObject) {
+        Long id = Long.valueOf(jsonObject.getValue("id", "-1").toString());
+        Long apiId = Long.valueOf(jsonObject.getValue("apiId", "-1").toString());
+        String actionType = jsonObject.getString("actionType");
+        String meaning = jsonObject.getString("meaning");
+        String name = jsonObject.getString("name");
+        String paramType = jsonObject.getString("paramType");
+        Integer required = Integer.valueOf(jsonObject.getString("required"));
+        ApiField apiField;
+        if (id > -1) {
+            Optional<ApiField> fApiField = apiFieldRepository.findById(id);
+            if (fApiField.isPresent()) {
+                apiField = fApiField.get();
+            } else {
+                throw new RuntimeException("没有找到该API文档字段");
+            }
+        } else {
+            apiField = new ApiField();
+            apiField.setApiId(apiId);
+            apiField.setIsActivity(1);
+        }
+        apiField.setActionType(actionType);
+        apiField.setMeaning(meaning);
+        apiField.setName(name);
+        apiField.setParamType(paramType);
+        apiField.setRequired(required);
+        apiField.setUpdateTime(new Date());
+        apiField = apiFieldRepository.save(apiField);
+        return Result.ofData(apiField.getId());
     }
 }

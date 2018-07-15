@@ -33,7 +33,8 @@ public class ServiceVerticle extends AbstractVerticle {
         DOC_API_LIST("DOC_API_LIST"),
         DOC_API_EDIT("DOC_API_EDIT"),
         DOC_API_DEL("DOC_API_DEL"),
-        DOC_API_STATUS("DOC_API_STATUS");
+        DOC_API_STATUS("DOC_API_STATUS"),
+        DOC_API_FIELD_ADD("DOC_API_FIELD_ADD");
 
         private String address;
 
@@ -116,6 +117,8 @@ public class ServiceVerticle extends AbstractVerticle {
                     return docService.apiDel(jsonObject);
                 case DOC_API_STATUS:
                     return docService.apiStatus(jsonObject);
+                case DOC_API_FIELD_ADD:
+                    return docService.apiFieldAdd(jsonObject);
                 default:
                     throw new RuntimeException("EventBus address not found");
             }
