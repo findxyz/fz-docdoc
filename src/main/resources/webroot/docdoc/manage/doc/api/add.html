@@ -40,16 +40,16 @@
     <div class="layui-form-item">
         <label class="layui-form-label">请求方法</label>
         <div class="layui-input-block">
-            <input type="radio" name="requestMethod" value="POST" title="POST" checked=""/>
-            <input type="radio" name="requestMethod" value="GET" title="GET"/>
+            <input type="radio" name="requestMethod" value="post" title="post" checked=""/>
+            <input type="radio" name="requestMethod" value="get" title="get"/>
         </div>
     </div>
     <div class="layui-form-item">
         <label class="layui-form-label">数据类型</label>
         <div class="layui-input-block">
-            <input type="radio" name="dataType" value="JSON" title="JSON" checked=""/>
-            <input type="radio" name="dataType" value="XML" title="XML"/>
-            <input type="radio" name="dataType" value="TEXT" title="TEXT"/>
+            <input type="radio" name="dataType" value="json" title="json" checked=""/>
+            <input type="radio" name="dataType" value="xml" title="xml"/>
+            <input type="radio" name="dataType" value="text" title="text"/>
         </div>
     </div>
     <div class="layui-form-item">
@@ -74,13 +74,13 @@
         <label class="layui-form-label">认证类型</label>
         <div class="layui-input-inline">
             <input type="text" id="authType" name="authType" required="required" lay-verify="required"
-                   placeholder="TOKEN？JWT？SESSION？不认证？等等"
+                   placeholder="token?jwt?session?不认证?等等"
                    autocomplete="off"
                    class="layui-input"/>
         </div>
     </div>
     <div class="layui-form-item">
-        <button class="layui-btn" lay-submit="submit" lay-filter="apiFormSubmit">立即提交</button>
+        <button class="layui-btn" lay-submit="submit" lay-filter="apiFormSubmit">保存</button>
         <button id="resetBtn" type="reset" class="layui-btn layui-btn-primary">重置</button>
     </div>
 </form>
