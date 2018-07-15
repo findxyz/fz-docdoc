@@ -69,6 +69,13 @@
         var form = layui.form;
         var layer = layui.layer;
 
+        $(document).keyup(function (event) {
+            switch (event.keyCode) {
+                case 27:
+                    layer.closeAll();
+            }
+        });
+
         function getParameterByName(name, url) {
             if (!url) url = window.location.href;
             name = name.replace(/[\[\]]/g, '\\$&');
@@ -142,13 +149,15 @@
                     , close: function (index, layero) {
                         layer.close(index);
                     }
+                    , success: function (layero, index) {
+                        var $statusUpdate = $("#statusUpdate");
+                        $statusUpdate.val(data.status);
+                        form.render();
+                        setTimeout(function () {
+                            $statusUpdate.next("div").addClass("layui-form-selected");
+                        }, 50);
+                    }
                 });
-                setTimeout(function () {
-                    var $statusUpdate = $("#statusUpdate");
-                    $statusUpdate.val(data.status);
-                    form.render();
-                    $statusUpdate.next("div").addClass("layui-form-selected");
-                }, 100);
             } else if (obj.event === 'edit') {
                 layer.open({
                     type: 2,

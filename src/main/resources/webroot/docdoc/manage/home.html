@@ -108,6 +108,13 @@
         var $ = layui.$;
         var element = layui.element;
 
+        $(document).keyup(function (event) {
+            switch (event.keyCode) {
+                case 27:
+                    layer.closeAll();
+            }
+        });
+
         var tabAdd = function (title, content, id) {
             var newId = id + "-" + new Date().getTime();
             element.tabAdd('mainContent', {

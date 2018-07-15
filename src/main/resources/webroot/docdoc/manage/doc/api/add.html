@@ -93,6 +93,13 @@
         var form = layui.form;
         var layer = layui.layer;
 
+        $(document).keyup(function (event) {
+            switch (event.keyCode) {
+                case 27:
+                    layer.closeAll();
+            }
+        });
+
         function getParameterByName(name, url) {
             if (!url) url = window.location.href;
             name = name.replace(/[\[\]]/g, '\\$&');

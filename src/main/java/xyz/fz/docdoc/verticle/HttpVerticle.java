@@ -218,10 +218,6 @@ public class HttpVerticle extends AbstractVerticle {
             routingContext.response().sendFile("webroot/docdoc/manage/user/main.html");
         });
 
-        router.route("/docdoc/manage/html/user/add").handler(routingContext -> {
-            routingContext.response().sendFile("webroot/docdoc/manage/user/add.html");
-        });
-
         router.route("/docdoc/manage/api/user/add").handler(routingContext -> {
             EventBusUtil.jsonBus(vertx, routingContext, ServiceVerticle.Address.USER_ADD);
         });

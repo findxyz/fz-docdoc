@@ -27,6 +27,13 @@
         var table = layui.table;
         var layer = layui.layer;
 
+        $(document).keyup(function (event) {
+            switch (event.keyCode) {
+                case 27:
+                    layer.closeAll();
+            }
+        });
+
         table.render({
             elem: '#userList'
             , width: '800px'
@@ -64,7 +71,42 @@
         });
 
         $("#addBtn").bind("click", function () {
-            window.location = "/docdoc/manage/html/user/add";
+            layer.open({
+                title: '新增用户'
+                , area: ['400px', '250px']
+                , content: $("#userAddTemplate").html()
+                , btn: ['保存', '关闭']
+                , yes: function (index, layero) {
+                    var userName = $("#userName").val();
+                    var passWord = $("#passWord").val();
+                    if (userName && passWord) {
+                        layer.close(index);
+                        $.ajax("/docdoc/manage/api/user/add", {
+                            type: 'POST',
+                            contentType: 'application/json',
+                            data: JSON.stringify({
+                                userName: userName,
+                                passWord: passWord
+                            }),
+                            dataType: 'json',
+                            success: function (json) {
+                                if (json.success) {
+                                    layer.msg('新增成功');
+                                    table.reload('userList', {});
+                                } else {
+                                    layer.open({time: 5000, content: '<div>' + json.message + '</div>'});
+                                }
+                            }
+                        });
+                    }
+                }
+                , close: function (index, layero) {
+                    layer.close(index);
+                }
+                , success: function (layero, index) {
+                    $("#userName").focus();
+                }
+            });
         });
 
         $("#adminUpdateBtn").click(function () {
@@ -99,10 +141,10 @@
                 , close: function (index, layero) {
                     layer.close(index);
                 }
+                , success: function (layero, index) {
+                    $("#adminOldPassWord").focus();
+                }
             });
-            setTimeout(function () {
-                $("#adminOldPassWord").focus();
-            }, 300);
         });
     }();
     /*]]>*/
@@ -124,6 +166,28 @@
             </div>
         </div>
     </div>
+</script>
+<script id="userAddTemplate" type="text/html">
+    <form class="layui-form layui-form-pane">
+        <div class="layui-form-item">
+            <label class="layui-form-label">用户名称</label>
+            <div class="layui-input-inline">
+                <input type="text" id="userName" name="userName" required="required" lay-verify="required"
+                       placeholder="请输入用户名称"
+                       autocomplete="off"
+                       class="layui-input"/>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">密码</label>
+            <div class="layui-input-inline">
+                <input type="password" id="passWord" name="passWord" required="required" lay-verify="required"
+                       placeholder="请输入密码"
+                       autocomplete="off"
+                       class="layui-input"/>
+            </div>
+        </div>
+    </form>
 </script>
 </body>
 </html>

@@ -74,6 +74,13 @@
         var $ = layui.jquery;
         var layer = layui.layer;
 
+        $(document).keyup(function (event) {
+            switch (event.keyCode) {
+                case 27:
+                    layer.closeAll();
+            }
+        });
+
         var loadGrid = function () {
             $.ajax("/docdoc/manage/api/doc/project/list", {
                 type: 'POST',
@@ -165,10 +172,10 @@
                 , close: function (index, layero) {
                     layer.close(index);
                 }
+                , success: function (layero, index) {
+                    $("#name").focus();
+                }
             });
-            setTimeout(function () {
-                $("#name").focus();
-            }, 300);
         });
 
         loadGrid();
