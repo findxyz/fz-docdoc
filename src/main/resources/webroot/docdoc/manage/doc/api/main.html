@@ -8,7 +8,7 @@
 </head>
 <body>
 
-<div>
+<div class="layui-btn-group">
     <button class="layui-btn layui-btn-primary" id="back"><i class="layui-icon">&#xe603;</i></button>
     <button class="layui-btn" id="addBtn">新增API</button>
     <button class="layui-btn layui-btn-normal" id="searchBtn">查询</button>
@@ -42,6 +42,7 @@
 
 <script type="text/html" id="toolBar">
     <a class="layui-btn layui-btn-normal layui-btn-xs" lay-event="detail">查看</a>
+    <a class="layui-btn layui-btn-warm layui-btn-xs" lay-event="status">状态</a>
     <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
     <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
 </script>
@@ -65,6 +66,7 @@
     !function () {
         var $ = layui.jquery;
         var table = layui.table;
+        var form = layui.form;
         var layer = layui.layer;
 
         function getParameterByName(name, url) {
@@ -95,9 +97,58 @@
             ]]
         });
 
+        var tableReload = function () {
+            table.reload('apiList', {
+                where: {
+                    projectId: projectId,
+                    name: $("#name").val(),
+                    status: $("#status").val()
+                }
+            });
+        };
+
         table.on('tool(apiList)', function (obj) {
             var data = obj.data;
             if (obj.event === 'detail') {
+            } else if (obj.event === 'status') {
+                layer.open({
+                    title: '更新状态'
+                    , area: ['400px', '350px']
+                    , content: $("#statusUpdateTemplate").html()
+                    , btn: ['更新', '关闭']
+                    , yes: function (index, layero) {
+                        var statusUpdate = $("#statusUpdate").val();
+                        if (statusUpdate) {
+                            layer.close(index);
+                            $.ajax("/docdoc/manage/api/doc/api/status", {
+                                type: 'POST',
+                                contentType: 'application/json',
+                                data: JSON.stringify({
+                                    id: data.id,
+                                    status: statusUpdate
+                                }),
+                                dataType: 'json',
+                                success: function (json) {
+                                    if (json.success) {
+                                        layer.msg('更新成功');
+                                        tableReload();
+                                    } else {
+                                        layer.open({time: 5000, content: '<div>' + json.message + '</div>'});
+                                    }
+                                }
+                            });
+                        }
+                    }
+                    , close: function (index, layero) {
+                        layer.close(index);
+                    }
+                });
+                setTimeout(function () {
+                    var $statusUpdate = $("#statusUpdate");
+                    $statusUpdate.val(data.status);
+                    form.render();
+                    $statusUpdate.next("div").addClass("layui-form-selected");
+                }, 100);
             } else if (obj.event === 'edit') {
                 layer.open({
                     type: 2,
@@ -111,18 +162,26 @@
                     }
                 });
             } else if (obj.event === 'del') {
+                layer.confirm('确定删除该文档吗？', function (index) {
+                    layer.close(index);
+                    $.ajax("/docdoc/manage/api/doc/api/del", {
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify({
+                            id: data.id
+                        }),
+                        dataType: 'json',
+                        success: function (json) {
+                            if (json.success) {
+                                tableReload();
+                            } else {
+                                layer.open({time: 5000, content: '<div>' + json.message + '</div>'});
+                            }
+                        }
+                    });
+                });
             }
         });
-
-        var tableReload = function () {
-            table.reload('apiList', {
-                where: {
-                    projectId: projectId,
-                    name: $("#name").val(),
-                    status: $("#status").val()
-                }
-            });
-        };
 
         $("#addBtn").click(function () {
             layer.open({
@@ -151,6 +210,21 @@
         });
     }();
     /*]]>*/
+</script>
+<script id="statusUpdateTemplate" type="text/html">
+    <form class="layui-form">
+        <div class="layui-form-item">
+            <label class="layui-form-label">更新状态</label>
+            <div class="layui-input-inline">
+                <select id="statusUpdate" name="statusUpdate">
+                    <option value="develop">开发中</option>
+                    <option value="developDone">开发完成</option>
+                    <option value="testDone">测试完成</option>
+                    <option value="deprecated">已过时</option>
+                </select>
+            </div>
+        </div>
+    </form>
 </script>
 </body>
 </html>

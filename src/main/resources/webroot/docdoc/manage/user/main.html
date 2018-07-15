@@ -88,7 +88,7 @@
                             dataType: 'json',
                             success: function (json) {
                                 if (json.success) {
-                                    layer.open({time: 5000, content: '<div>更新成功</div>'});
+                                    layer.msg('更新成功');
                                 } else {
                                     layer.open({time: 5000, content: '<div>' + json.message + '</div>'});
                                 }
