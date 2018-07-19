@@ -89,9 +89,6 @@ public class ServiceVerticle extends AbstractVerticle {
         }
 
         private static JsonObject reply(Address address, JsonObject jsonObject) {
-            if (!init) {
-                throw new RuntimeException("ReplyFactory 没有初始化");
-            }
             switch (address) {
                 case USER_ADD:
                     return userService.add(jsonObject);
