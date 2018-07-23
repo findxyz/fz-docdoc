@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import xyz.fz.docdoc.model.Result;
 import xyz.fz.docdoc.util.BaseUtil;
 import xyz.fz.docdoc.util.EventBusUtil;
+import xyz.fz.docdoc.util.IpAddressUtil;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -283,6 +284,10 @@ public class HttpVerticle extends AbstractVerticle {
             EventBusUtil.jsonBus(vertx, routingContext, ServiceVerticle.Address.DOC_PROJECT_ADD);
         });
 
+        router.route("/docdoc/manage/api/doc/project/del").handler(routingContext -> {
+            EventBusUtil.jsonBus(vertx, routingContext, ServiceVerticle.Address.DOC_PROJECT_DEL);
+        });
+
         router.route("/docdoc/manage/api/doc/project/list").handler(routingContext -> {
             EventBusUtil.formBus(vertx, routingContext, ServiceVerticle.Address.DOC_PROJECT_LIST);
         });
@@ -292,6 +297,10 @@ public class HttpVerticle extends AbstractVerticle {
             JsonObject authorJsonObject = new JsonObject();
             authorJsonObject.put("author", curUserJsonObject.getValue("userName"));
             EventBusUtil.jsonBus(vertx, routingContext, ServiceVerticle.Address.DOC_API_ADD, authorJsonObject);
+        });
+
+        router.route("/docdoc/manage/api/doc/api/example/update").handler(routingContext -> {
+            EventBusUtil.jsonBus(vertx, routingContext, ServiceVerticle.Address.DOC_API_EXAMPLE_UPDATE);
         });
 
         router.route("/docdoc/manage/api/doc/api/list").handler(routingContext -> {
@@ -312,6 +321,41 @@ public class HttpVerticle extends AbstractVerticle {
 
         router.route("/docdoc/manage/api/doc/api/field/add").handler(routingContext -> {
             EventBusUtil.jsonBus(vertx, routingContext, ServiceVerticle.Address.DOC_API_FIELD_ADD);
+        });
+
+        router.route("/docdoc/manage/api/doc/api/field/del").handler(routingContext -> {
+            EventBusUtil.jsonBus(vertx, routingContext, ServiceVerticle.Address.DOC_API_FIELD_DEL);
+        });
+
+        router.route("/docdoc/manage/api/doc/api/field/list").handler(routingContext -> {
+            EventBusUtil.formBus(vertx, routingContext, ServiceVerticle.Address.DOC_API_FIELD_LIST);
+        });
+
+        router.route("/docdoc/manage/api/doc/api/log/add").handler(routingContext -> {
+            JsonObject curUserJsonObject = routingContext.session().get(CUR_USER);
+            JsonObject authorJsonObject = new JsonObject();
+            authorJsonObject.put("author", curUserJsonObject.getValue("userName"));
+            EventBusUtil.jsonBus(vertx, routingContext, ServiceVerticle.Address.DOC_API_LOG_ADD, authorJsonObject);
+        });
+
+        router.route("/docdoc/manage/api/doc/api/log/del").handler(routingContext -> {
+            EventBusUtil.jsonBus(vertx, routingContext, ServiceVerticle.Address.DOC_API_LOG_DEL);
+        });
+
+        router.route("/docdoc/manage/api/doc/api/log/list").handler(routingContext -> {
+            EventBusUtil.formBus(vertx, routingContext, ServiceVerticle.Address.DOC_API_LOG_LIST);
+        });
+
+        router.route("/docdoc/manage/api/doc/api/response/example/add").handler(routingContext -> {
+            EventBusUtil.jsonBus(vertx, routingContext, ServiceVerticle.Address.DOC_API_RESPONSE_EXAMPLE_ADD, new JsonObject().put("ip", IpAddressUtil.getIpAddress(routingContext.request())));
+        });
+
+        router.route("/docdoc/manage/api/doc/api/response/example/del").handler(routingContext -> {
+            EventBusUtil.jsonBus(vertx, routingContext, ServiceVerticle.Address.DOC_API_RESPONSE_EXAMPLE_DEL, new JsonObject().put("ip", IpAddressUtil.getIpAddress(routingContext.request())));
+        });
+
+        router.route("/docdoc/manage/api/doc/api/response/example/one").handler(routingContext -> {
+            EventBusUtil.jsonBus(vertx, routingContext, ServiceVerticle.Address.DOC_API_RESPONSE_EXAMPLE_ONE, new JsonObject().put("ip", IpAddressUtil.getIpAddress(routingContext.request())));
         });
     }
 

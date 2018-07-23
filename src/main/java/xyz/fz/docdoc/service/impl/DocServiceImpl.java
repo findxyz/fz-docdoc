@@ -12,13 +12,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import xyz.fz.docdoc.entity.Api;
-import xyz.fz.docdoc.entity.ApiField;
-import xyz.fz.docdoc.entity.Project;
+import xyz.fz.docdoc.entity.*;
 import xyz.fz.docdoc.model.Result;
-import xyz.fz.docdoc.repository.ApiFieldRepository;
-import xyz.fz.docdoc.repository.ApiRepository;
-import xyz.fz.docdoc.repository.ProjectRepository;
+import xyz.fz.docdoc.repository.*;
 import xyz.fz.docdoc.service.DocService;
 
 import java.util.*;
@@ -35,13 +31,24 @@ public class DocServiceImpl implements DocService {
 
     private final ApiFieldRepository apiFieldRepository;
 
+    private final ApiLogRepository apiLogRepository;
+
+    private final ApiResponseExampleRepository apiResponseExampleRepository;
+
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     @Autowired
-    public DocServiceImpl(ProjectRepository projectRepository, ApiRepository apiRepository, ApiFieldRepository apiFieldRepository, NamedParameterJdbcTemplate namedParameterJdbcTemplate) {
+    public DocServiceImpl(ProjectRepository projectRepository,
+                          ApiRepository apiRepository,
+                          ApiFieldRepository apiFieldRepository,
+                          ApiLogRepository apiLogRepository,
+                          ApiResponseExampleRepository apiResponseExampleRepository,
+                          NamedParameterJdbcTemplate namedParameterJdbcTemplate) {
         this.projectRepository = projectRepository;
         this.apiRepository = apiRepository;
         this.apiFieldRepository = apiFieldRepository;
+        this.apiLogRepository = apiLogRepository;
+        this.apiResponseExampleRepository = apiResponseExampleRepository;
         this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
     }
 
@@ -52,6 +59,20 @@ public class DocServiceImpl implements DocService {
         project.setIsActivity(1);
         projectRepository.save(project);
         return Result.ofSuccess();
+    }
+
+    @Override
+    public JsonObject projectDel(JsonObject jsonObject) {
+        Long id = Long.valueOf(jsonObject.getValue("id").toString());
+        Optional<Project> fProject = projectRepository.findById(id);
+        if (fProject.isPresent()) {
+            Project project = fProject.get();
+            project.setIsActivity(0);
+            projectRepository.save(project);
+            return Result.ofSuccess();
+        } else {
+            throw new RuntimeException("项目不存在");
+        }
     }
 
     @Override
@@ -104,6 +125,23 @@ public class DocServiceImpl implements DocService {
     }
 
     @Override
+    public JsonObject apiExampleUpdate(JsonObject jsonObject) {
+        Long id = Long.valueOf(jsonObject.getValue("id").toString());
+        String requestExample = jsonObject.getString("requestExample");
+        String responseExample = jsonObject.getString("responseExample");
+        Optional<Api> fApi = apiRepository.findById(id);
+        if (fApi.isPresent()) {
+            Api api = fApi.get();
+            api.setRequestExample(requestExample);
+            api.setResponseExample(responseExample);
+            api = apiRepository.save(api);
+            return Result.ofData(api.getId());
+        } else {
+            throw new RuntimeException("API文档不存在");
+        }
+    }
+
+    @Override
     public JsonObject apiList(JsonObject jsonObject) {
         String name = jsonObject.getString("name");
         String status = jsonObject.getString("status");
@@ -142,9 +180,13 @@ public class DocServiceImpl implements DocService {
     @Override
     public JsonObject apiEdit(JsonObject jsonObject) {
         Long id = Long.valueOf(jsonObject.getValue("id").toString());
+        return Result.ofData(apiOne(id));
+    }
+
+    private Api apiOne(Long id) {
         Optional<Api> fApi = apiRepository.findById(id);
         if (fApi.isPresent()) {
-            return Result.ofData(JsonObject.mapFrom(fApi.get()));
+            return fApi.get();
         } else {
             throw new RuntimeException("API文档不存在");
         }
@@ -152,11 +194,14 @@ public class DocServiceImpl implements DocService {
 
     @Override
     public JsonObject apiDel(JsonObject jsonObject) {
-        try {
-            Long id = Long.valueOf(jsonObject.getValue("id").toString());
-            apiRepository.deleteById(id);
+        Long id = Long.valueOf(jsonObject.getValue("id").toString());
+        Optional<Api> fApi = apiRepository.findById(id);
+        if (fApi.isPresent()) {
+            Api api = fApi.get();
+            api.setIsActivity(0);
+            apiRepository.save(api);
             return Result.ofSuccess();
-        } catch (Exception e) {
+        } else {
             throw new RuntimeException("API文档不存在");
         }
     }
@@ -184,14 +229,14 @@ public class DocServiceImpl implements DocService {
         String meaning = jsonObject.getString("meaning");
         String name = jsonObject.getString("name");
         String paramType = jsonObject.getString("paramType");
-        Integer required = Integer.valueOf(jsonObject.getString("required"));
+        Integer required = Integer.valueOf(jsonObject.getValue("required").toString());
         ApiField apiField;
         if (id > -1) {
             Optional<ApiField> fApiField = apiFieldRepository.findById(id);
             if (fApiField.isPresent()) {
                 apiField = fApiField.get();
             } else {
-                throw new RuntimeException("没有找到该API文档字段");
+                throw new RuntimeException("API文档字段不存在");
             }
         } else {
             apiField = new ApiField();
@@ -206,5 +251,137 @@ public class DocServiceImpl implements DocService {
         apiField.setUpdateTime(new Date());
         apiField = apiFieldRepository.save(apiField);
         return Result.ofData(apiField.getId());
+    }
+
+    @Override
+    public JsonObject apiFieldDel(JsonObject jsonObject) {
+        Long id = Long.valueOf(jsonObject.getValue("id").toString());
+        Optional<ApiField> fApiField = apiFieldRepository.findById(id);
+        if (fApiField.isPresent()) {
+            ApiField apiField = fApiField.get();
+            apiField.setIsActivity(0);
+            apiFieldRepository.save(apiField);
+            return Result.ofSuccess();
+        } else {
+            throw new RuntimeException("API文档字段不存在");
+        }
+    }
+
+    @Override
+    public JsonObject apiFieldList(JsonObject jsonObject) {
+        Long apiId = Long.valueOf(jsonObject.getValue("apiId").toString());
+        String actionType = jsonObject.getString("actionType");
+        ApiField sApiField = new ApiField();
+        sApiField.setIsActivity(1);
+        sApiField.setApiId(apiId);
+        sApiField.setActionType(actionType);
+        sApiField.setVersion(null);
+        ExampleMatcher exampleMatcher = ExampleMatcher.matching();
+        Example<ApiField> apiFieldExample = Example.of(sApiField, exampleMatcher);
+        Sort sort = Sort.by(Sort.Direction.ASC, "id");
+        List<ApiField> list = apiFieldRepository.findAll(apiFieldExample, sort);
+        return Result.ofData(list);
+    }
+
+    @Override
+    public JsonObject apiLogAdd(JsonObject jsonObject) {
+        Long apiId = Long.valueOf(jsonObject.getValue("apiId").toString());
+        String author = jsonObject.getString("author");
+        String reason = jsonObject.getString("reason");
+        ApiLog apiLog = new ApiLog();
+        apiLog.setApiId(apiId);
+        apiLog.setAuthor(author);
+        apiLog.setCreateTime(new Date());
+        apiLog.setReason(reason);
+        apiLog.setIsActivity(1);
+        apiLog = apiLogRepository.save(apiLog);
+        return Result.ofData(apiLog.getId());
+    }
+
+    @Override
+    public JsonObject apiLogDel(JsonObject jsonObject) {
+        Long id = Long.valueOf(jsonObject.getValue("id").toString());
+        Optional<ApiLog> fApiLog = apiLogRepository.findById(id);
+        if (fApiLog.isPresent()) {
+            ApiLog apiLog = fApiLog.get();
+            apiLog.setIsActivity(0);
+            apiLogRepository.save(apiLog);
+            return Result.ofSuccess();
+        } else {
+            throw new RuntimeException("API文档日志不存在");
+        }
+    }
+
+    @Override
+    public JsonObject apiLogList(JsonObject jsonObject) {
+        Long apiId = Long.valueOf(jsonObject.getValue("apiId").toString());
+        ApiLog sApiLog = new ApiLog();
+        sApiLog.setIsActivity(1);
+        sApiLog.setApiId(apiId);
+        ExampleMatcher exampleMatcher = ExampleMatcher.matching();
+        Example<ApiLog> apiLogExample = Example.of(sApiLog, exampleMatcher);
+        Sort sort = Sort.by(Sort.Direction.ASC, "id");
+        List<ApiLog> list = apiLogRepository.findAll(apiLogExample, sort);
+        return Result.ofData(list);
+    }
+
+    @Override
+    public JsonObject apiResponseExampleAdd(JsonObject jsonObject) {
+        Long apiId = Long.valueOf(jsonObject.getValue("apiId", "-1").toString());
+        String ip = jsonObject.getString("ip");
+        String responseExample = jsonObject.getString("responseExample");
+        ApiResponseExample apiResponseExample;
+        ApiResponseExample sApiResponseExample = new ApiResponseExample();
+        sApiResponseExample.setApiId(apiId);
+        sApiResponseExample.setIp(ip);
+        ExampleMatcher exampleMatcher = ExampleMatcher.matching();
+        Example<ApiResponseExample> apiResponseExampleExample = Example.of(sApiResponseExample, exampleMatcher);
+        Optional<ApiResponseExample> fApiResponseExample = apiResponseExampleRepository.findOne(apiResponseExampleExample);
+        if (fApiResponseExample.isPresent()) {
+            apiResponseExample = fApiResponseExample.get();
+        } else {
+            apiResponseExample = new ApiResponseExample();
+            apiResponseExample.setApiId(apiId);
+        }
+        apiResponseExample.setIp(ip);
+        apiResponseExample.setResponseExample(responseExample);
+        apiResponseExample.setUpdateTime(new Date());
+        apiResponseExample = apiResponseExampleRepository.save(apiResponseExample);
+        return Result.ofData(apiResponseExample.getId());
+    }
+
+    @Override
+    public JsonObject apiResponseExampleDel(JsonObject jsonObject) {
+        try {
+            Long apiId = Long.valueOf(jsonObject.getValue("apiId").toString());
+            String ip = jsonObject.getString("ip");
+            ApiResponseExample sApiResponseExample = new ApiResponseExample();
+            sApiResponseExample.setApiId(apiId);
+            sApiResponseExample.setIp(ip);
+            ExampleMatcher exampleMatcher = ExampleMatcher.matching();
+            Example<ApiResponseExample> apiResponseExample = Example.of(sApiResponseExample, exampleMatcher);
+            Optional<ApiResponseExample> fApiResponseExample = apiResponseExampleRepository.findOne(apiResponseExample);
+            fApiResponseExample.ifPresent(apiResponseExampleRepository::delete);
+            return Result.ofSuccess();
+        } catch (Exception e) {
+            throw new RuntimeException("API文档返回样例不存在");
+        }
+    }
+
+    @Override
+    public JsonObject apiResponseExampleOne(JsonObject jsonObject) {
+        Long apiId = Long.valueOf(jsonObject.getValue("apiId").toString());
+        String ip = jsonObject.getString("ip");
+        ApiResponseExample sApiResponseExample = new ApiResponseExample();
+        sApiResponseExample.setApiId(apiId);
+        sApiResponseExample.setIp(ip);
+        ExampleMatcher exampleMatcher = ExampleMatcher.matching();
+        Example<ApiResponseExample> apiResponseExample = Example.of(sApiResponseExample, exampleMatcher);
+        Optional<ApiResponseExample> fApiResponseExample = apiResponseExampleRepository.findOne(apiResponseExample);
+        if (fApiResponseExample.isPresent()) {
+            return Result.ofData(fApiResponseExample.get().getResponseExample());
+        } else {
+            return Result.ofData(apiOne(apiId).getResponseExample());
+        }
     }
 }

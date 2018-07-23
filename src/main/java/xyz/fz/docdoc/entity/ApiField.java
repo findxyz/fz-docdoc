@@ -7,6 +7,10 @@ import java.util.Date;
 @Table(name = "t_doc_api_field")
 public class ApiField {
 
+    public static final String ACTION_REQUEST = "request";
+
+    public static final String ACTION_RESPONSE = "response";
+
     @Id
     @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)

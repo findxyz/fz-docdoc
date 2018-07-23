@@ -28,13 +28,23 @@ public class ServiceVerticle extends AbstractVerticle {
         USER_ADMIN_UPDATE("USER_ADMIN_UPDATE"),
 
         DOC_PROJECT_ADD("DOC_PROJECT_ADD"),
+        DOC_PROJECT_DEL("DOC_PROJECT_DEL"),
         DOC_PROJECT_LIST("DOC_PROJECT_LIST"),
         DOC_API_ADD("DOC_API_ADD"),
+        DOC_API_EXAMPLE_UPDATE("DOC_API_EXAMPLE_UPDATE"),
         DOC_API_LIST("DOC_API_LIST"),
         DOC_API_EDIT("DOC_API_EDIT"),
         DOC_API_DEL("DOC_API_DEL"),
         DOC_API_STATUS("DOC_API_STATUS"),
-        DOC_API_FIELD_ADD("DOC_API_FIELD_ADD");
+        DOC_API_FIELD_ADD("DOC_API_FIELD_ADD"),
+        DOC_API_FIELD_DEL("DOC_API_FIELD_DEL"),
+        DOC_API_FIELD_LIST("DOC_API_FIELD_LIST"),
+        DOC_API_LOG_ADD("DOC_API_LOG_ADD"),
+        DOC_API_LOG_DEL("DOC_API_LOG_DEL"),
+        DOC_API_LOG_LIST("DOC_API_LOG_LIST"),
+        DOC_API_RESPONSE_EXAMPLE_ADD("DOC_API_RESPONSE_EXAMPLE_ADD"),
+        DOC_API_RESPONSE_EXAMPLE_DEL("DOC_API_RESPONSE_EXAMPLE_DEL"),
+        DOC_API_RESPONSE_EXAMPLE_ONE("DOC_API_RESPONSE_EXAMPLE_ONE");
 
         private String address;
 
@@ -102,10 +112,14 @@ public class ServiceVerticle extends AbstractVerticle {
                     return userService.adminUpdate(jsonObject);
                 case DOC_PROJECT_ADD:
                     return docService.projectAdd(jsonObject);
+                case DOC_PROJECT_DEL:
+                    return docService.projectDel(jsonObject);
                 case DOC_PROJECT_LIST:
                     return docService.projectList(jsonObject);
                 case DOC_API_ADD:
                     return docService.apiAdd(jsonObject);
+                case DOC_API_EXAMPLE_UPDATE:
+                    return docService.apiExampleUpdate(jsonObject);
                 case DOC_API_LIST:
                     return docService.apiList(jsonObject);
                 case DOC_API_EDIT:
@@ -116,6 +130,22 @@ public class ServiceVerticle extends AbstractVerticle {
                     return docService.apiStatus(jsonObject);
                 case DOC_API_FIELD_ADD:
                     return docService.apiFieldAdd(jsonObject);
+                case DOC_API_FIELD_DEL:
+                    return docService.apiFieldDel(jsonObject);
+                case DOC_API_FIELD_LIST:
+                    return docService.apiFieldList(jsonObject);
+                case DOC_API_LOG_ADD:
+                    return docService.apiLogAdd(jsonObject);
+                case DOC_API_LOG_DEL:
+                    return docService.apiLogDel(jsonObject);
+                case DOC_API_LOG_LIST:
+                    return docService.apiLogList(jsonObject);
+                case DOC_API_RESPONSE_EXAMPLE_ADD:
+                    return docService.apiResponseExampleAdd(jsonObject);
+                case DOC_API_RESPONSE_EXAMPLE_DEL:
+                    return docService.apiResponseExampleDel(jsonObject);
+                case DOC_API_RESPONSE_EXAMPLE_ONE:
+                    return docService.apiResponseExampleOne(jsonObject);
                 default:
                     throw new RuntimeException("EventBus address not found");
             }
