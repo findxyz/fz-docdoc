@@ -164,10 +164,14 @@
                     title: '修改API',
                     shadeClose: true,
                     shade: 0.8,
-                    area: ['950px', '440px'],
+                    area: ['950px', '490px'],
                     content: '/docdoc/manage/html/doc/api/add?id=' + data.id,
                     cancel: function () {
                         tableReload();
+                    },
+                    btn: ['关闭'],
+                    close: function () {
+                        layer.closeAll();
                     }
                 });
             } else if (obj.event === 'del') {
@@ -198,10 +202,14 @@
                 title: '新增API',
                 shadeClose: true,
                 shade: 0.8,
-                area: ['950px', '440px'],
+                area: ['950px', '490px'],
                 content: '/docdoc/manage/html/doc/api/add?projectId=' + projectId,
                 cancel: function () {
                     tableReload();
+                },
+                btn: ['关闭'],
+                close: function () {
+                    layer.closeAll();
                 }
             });
         });

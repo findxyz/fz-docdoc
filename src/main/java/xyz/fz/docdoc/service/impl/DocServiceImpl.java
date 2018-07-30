@@ -180,7 +180,7 @@ public class DocServiceImpl implements DocService {
     @Override
     public JsonObject apiEdit(JsonObject jsonObject) {
         Long id = Long.valueOf(jsonObject.getValue("id").toString());
-        return Result.ofData(apiOne(id));
+        return Result.ofData(JsonObject.mapFrom(apiOne(id)));
     }
 
     private Api apiOne(Long id) {

@@ -33,6 +33,7 @@ public class Application {
         final Vertx vertx = Vertx.vertx();
         DeploymentOptions workerDeploymentOptions = new DeploymentOptions();
         workerDeploymentOptions.setWorker(true);
+        workerDeploymentOptions.setWorkerPoolSize(10);
         vertx.deployVerticle(new ServiceVerticle(context), workerDeploymentOptions);
         int serverPort = Integer.parseInt(context.getEnvironment().getProperty("server.port"));
         vertx.deployVerticle(new HttpVerticle(serverPort));
