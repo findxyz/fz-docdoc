@@ -12,7 +12,11 @@ import xyz.fz.docdoc.service.DocService;
 import xyz.fz.docdoc.service.UserService;
 import xyz.fz.docdoc.util.BaseUtil;
 
+import java.util.UUID;
+
 public class ServiceVerticle extends AbstractVerticle {
+
+    private String instanceId;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ServiceVerticle.class);
 
@@ -60,6 +64,7 @@ public class ServiceVerticle extends AbstractVerticle {
 
     public ServiceVerticle(ApplicationContext context) {
         ReplyFactory.serviceInit(context);
+        instanceId = UUID.randomUUID().toString();
     }
 
     @Override
@@ -73,6 +78,7 @@ public class ServiceVerticle extends AbstractVerticle {
     private void consumer(Vertx vertx, Address address) {
         vertx.eventBus().consumer(address.toString(), msg -> {
             try {
+                LOGGER.debug("verticle instanceId: {}, consumer address: {}", instanceId, address.toString());
                 JsonObject replyJsonObject = ReplyFactory.reply(address, (JsonObject) msg.body());
                 String replyJsonString = replyJsonObject != null ? replyJsonObject.toString() : Result.ofSuccess().toString();
                 msg.reply(replyJsonString);

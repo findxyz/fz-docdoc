@@ -34,7 +34,12 @@ public class Application {
         DeploymentOptions workerDeploymentOptions = new DeploymentOptions();
         workerDeploymentOptions.setWorker(true);
         workerDeploymentOptions.setWorkerPoolSize(10);
+
+        // one ServiceVerticle instance
         vertx.deployVerticle(new ServiceVerticle(context), workerDeploymentOptions);
+        // another ServiceVerticle instance
+        vertx.deployVerticle(new ServiceVerticle(context), workerDeploymentOptions);
+
         int serverPort = Integer.parseInt(context.getEnvironment().getProperty("server.port"));
         vertx.deployVerticle(new HttpVerticle(serverPort));
 
