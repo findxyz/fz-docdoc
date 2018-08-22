@@ -104,6 +104,7 @@
 <script type="text/javascript" src="/pubs/layui-v2.3.0/layui/layui.all.js"></script>
 <script type="text/javascript">
     /*<![CDATA[*/
+    var tabAdd;
     !function () {
         var $ = layui.$;
         var element = layui.element;
@@ -115,7 +116,7 @@
             }
         });
 
-        var tabAdd = function (title, content, id) {
+        tabAdd = function (title, content, id) {
             var newId = id + "-" + new Date().getTime();
             element.tabAdd('mainContent', {
                 title: title

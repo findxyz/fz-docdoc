@@ -1,5 +1,7 @@
 package xyz.fz.docdoc.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import javax.persistence.*;
 import java.util.Date;
 
@@ -34,6 +36,7 @@ public class ApiField {
     @Column(name = "required")
     private Integer required;
 
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     @Column(name = "updateTime")
     private Date updateTime;
 

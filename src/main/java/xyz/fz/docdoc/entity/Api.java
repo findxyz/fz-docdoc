@@ -1,5 +1,7 @@
 package xyz.fz.docdoc.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import javax.persistence.*;
 import java.util.Date;
 
@@ -44,9 +46,11 @@ public class Api {
     @Column(name = "author")
     private String author;
 
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     @Column(name = "createTime")
     private Date createTime;
 
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     @Column(name = "updateTime")
     private Date updateTime;
 

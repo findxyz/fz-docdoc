@@ -280,7 +280,13 @@ public class DocServiceImpl implements DocService {
         Example<ApiField> apiFieldExample = Example.of(sApiField, exampleMatcher);
         Sort sort = Sort.by(Sort.Direction.ASC, "id");
         List<ApiField> list = apiFieldRepository.findAll(apiFieldExample, sort);
-        return Result.ofData(list);
+
+        JsonObject result = new JsonObject();
+        result.put("code", 0);
+        result.put("msg", "");
+        result.put("data", list);
+        result.put("count", list.size());
+        return result;
     }
 
     @Override
@@ -322,7 +328,13 @@ public class DocServiceImpl implements DocService {
         Example<ApiLog> apiLogExample = Example.of(sApiLog, exampleMatcher);
         Sort sort = Sort.by(Sort.Direction.ASC, "id");
         List<ApiLog> list = apiLogRepository.findAll(apiLogExample, sort);
-        return Result.ofData(list);
+
+        JsonObject result = new JsonObject();
+        result.put("code", 0);
+        result.put("msg", "");
+        result.put("data", list);
+        result.put("count", list.size());
+        return result;
     }
 
     @Override

@@ -280,6 +280,10 @@ public class HttpVerticle extends AbstractVerticle {
             routingContext.response().sendFile("webroot/docdoc/manage/doc/api/add.html");
         });
 
+        router.route("/docdoc/manage/html/doc/api/detail").handler(routingContext -> {
+            routingContext.response().sendFile("webroot/docdoc/manage/doc/api/detail.html");
+        });
+
         router.route("/docdoc/manage/api/doc/project/add").handler(routingContext -> {
             EventBusUtil.jsonBus(vertx, routingContext, ServiceVerticle.Address.DOC_PROJECT_ADD);
         });

@@ -118,6 +118,7 @@
         table.on('tool(apiList)', function (obj) {
             var data = obj.data;
             if (obj.event === 'detail') {
+                window.parent.tabAdd(data.name, '<iframe src="' + "/docdoc/manage/html/doc/api/detail?id=" + data.id + '" frameborder="0" style="width: 100%; height: ' + ($(window.parent).height() - 160) + 'px;"></iframe>', "");
             } else if (obj.event === 'status') {
                 layer.open({
                     title: '更新状态'

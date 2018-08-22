@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>doc api detail</title>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+    <link href="/pubs/layui-v2.3.0/layui/css/layui.css" rel="stylesheet"/>
+    <style type="text/css">
+        .layui-table td, .layui-table th {
+            position: relative;
+            min-height: 20px;
+            line-height: 20px;
+            font-size: 18px;
+            padding: 9px 15px;
+        }
+    </style>
+</head>
+<body style="padding: 5px;">
+
+<div class="layui-tab layui-tab-brief">
+    <ul class="layui-tab-title">
+        <li class="layui-this">详情</li>
+        <li>请求响应模版</li>
+    </ul>
+    <div class="layui-tab-content">
+        <div class="layui-tab-item layui-show">
+            <fieldset class="layui-elem-field layui-field-title">
+                <legend>基础信息</legend>
+            </fieldset>
+            <table class="layui-table" lay-even="" lay-skin="row">
+                <colgroup>
+                    <col width="200"/>
+                    <col width="350"/>
+                    <col width="200"/>
+                    <col/>
+                </colgroup>
+                <tbody>
+                <tr>
+                    <td>API名称</td>
+                    <td id="name" colspan="3"></td>
+                </tr>
+                <tr>
+                    <td>请求内容类型</td>
+                    <td id="contentType"></td>
+                    <td>返回数据类型</td>
+                    <td id="dataType"></td>
+                </tr>
+                <tr>
+                    <td>请求方法</td>
+                    <td id="requestMethod"></td>
+                    <td>认证类型</td>
+                    <td id="authType"></td>
+                </tr>
+                <tr>
+                    <td>作者</td>
+                    <td id="author"></td>
+                    <td>接口地址（相对）</td>
+                    <td id="requestUrl"></td>
+                </tr>
+                <tr>
+                    <td>创建时间</td>
+                    <td id="createTime"></td>
+                    <td>更新时间</td>
+                    <td id="updateTime"></td>
+                </tr>
+                <tr>
+                    <td>状态</td>
+                    <td id="status" colspan="3"></td>
+                </tr>
+                </tbody>
+            </table>
+            <fieldset class="layui-elem-field layui-field-title">
+                <legend>变动日志</legend>
+            </fieldset>
+            <div class="layui-form-item">
+                <label class="layui-form-label" style="font-size: 18px;">新增日志</label>
+                <div class="layui-input-inline" style="width: 500px;">
+                    <input type="text" id="reason" autocomplete="off" placeholder="变动原因"
+                           style="font-size: 18px"
+                           class="layui-input"/>
+                </div>
+                <button class="layui-btn layui-btn-normal" id="logAddBtn">新增</button>
+            </div>
+            <table class="layui-table" lay-even="" lay-skin="row" id="logList" lay-filter="logList"></table>
+            <fieldset class="layui-elem-field layui-field-title">
+                <legend>字段列表</legend>
+            </fieldset>
+            <div class="layui-form">
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <label class="layui-form-label" style="font-size: 18px">参数类型</label>
+                        <div class="layui-input-inline">
+                            <input type="radio" name="actionType" value="request" title="请求" checked=""/>
+                            <input type="radio" name="actionType" value="response" title="响应"/>
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <label class="layui-form-label" style="font-size: 18px">是否必填</label>
+                        <div class="layui-input-block">
+                            <input type="checkbox" id="required" checked="" lay-skin="switch" lay-text="是|否"/>
+                        </div>
+                    </div>
+                    <br/>
+                    <div class="layui-inline">
+                        <label class="layui-form-label" style="font-size: 18px">参数含义</label>
+                        <div class="layui-input-inline">
+                            <input type="text" id="meaning" autocomplete="off" class="layui-input"
+                                   style="font-size: 18px"/>
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <label class="layui-form-label" style="font-size: 18px">参数名称</label>
+                        <div class="layui-input-inline">
+                            <input type="text" id="fieldName" autocomplete="off" class="layui-input"
+                                   style="font-size: 18px"/>
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <label class="layui-form-label" style="font-size: 18px">参数类型</label>
+                        <div class="layui-input-inline">
+                            <input type="text" id="paramType" autocomplete="off" class="layui-input"
+                                   style="font-size: 18px"/>
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <button class="layui-btn layui-btn-normal" id="fieldAddBtn">新增</button>
+                    </div>
+                </div>
+            </div>
+            <fieldset class="layui-elem-field layui-field-title">
+                <legend>请求字段列表</legend>
+            </fieldset>
+            <table class="layui-table" lay-even="" lay-skin="row" id="apiRequestFieldList"
+                   lay-filter="apiRequestFieldList"></table>
+            <fieldset class="layui-elem-field layui-field-title">
+                <legend>响应字段列表</legend>
+            </fieldset>
+            <table class="layui-table" lay-even="" lay-skin="row" id="apiResponseFieldList"
+                   lay-filter="apiResponseFieldList"></table>
+        </div>
+        <div class="layui-tab-item">
+
+        </div>
+    </div>
+</div>
+
+<script type="text/html" id="toolBar">
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+</script>
+<script type="text/html" id="requiredTpl">
+    {{# if (d.required === 1) { }}
+    <span style="color: green;">是</span>
+    {{# } else { }}
+    <span style="color: red;">否</span>
+    {{# } }}
+</script>
+<script type="text/javascript" src="/pubs/layui-v2.3.0/layui/layui.all.js"></script>
+<script type="text/javascript">
+    /*<![CDATA[*/
+    !function () {
+        var $ = layui.jquery;
+        var layer = layui.layer;
+        var table = layui.table;
+
+        $(document).keyup(function (event) {
+            switch (event.keyCode) {
+                case 27:
+                    layer.closeAll();
+            }
+        });
+
+        function getParameterByName(name, url) {
+            if (!url) url = window.location.href;
+            name = name.replace(/[\[\]]/g, '\\$&');
+            var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+                results = regex.exec(url);
+            if (!results) return null;
+            if (!results[2]) return '';
+            return decodeURIComponent(results[2].replace(/\+/g, ' '));
+        }
+
+        var id = getParameterByName("id", window.location);
+
+        $.ajax("/docdoc/manage/api/doc/api/edit", {
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({id: id}),
+            dataType: 'json',
+            success: function (json) {
+                if (json.success) {
+                    $("#name").text(json.data.name);
+                    $("#requestUrl").text(json.data.requestUrl);
+                    $("#authType").text(json.data.authType);
+                    $("#contentType").text(json.data.contentType);
+                    $("#requestMethod").text(json.data.requestMethod);
+                    $("#dataType").text(json.data.dataType);
+                    $("#author").text(json.data.author);
+                    $("#createTime").text(json.data.createTime);
+                    $("#updateTime").text(json.data.updateTime);
+                    var statusDesc;
+                    switch (json.data.status) {
+                        case "develop":
+                            statusDesc = "开发中";
+                            break;
+                        case "developDone":
+                            statusDesc = "开发完成";
+                            break;
+                        case "testDone":
+                            statusDesc = "测试完成";
+                            break;
+                        case "deprecated":
+                            statusDesc = "已过时";
+                            break;
+                        default:
+                            statusDesc = "未知";
+                    }
+                    $("#status").text(statusDesc);
+                } else {
+                    layer.open({time: 5000, content: '<div>' + json.message + '</div>'});
+                }
+            }
+        });
+
+        table.render({
+            elem: '#logList'
+            , width: '1200px'
+            , url: '/docdoc/manage/api/doc/api/log/list'
+            , where: {apiId: id}
+            , cellMinWidth: 80
+            , cols: [[
+                {field: 'op', width: 80, title: '操作', templet: '#toolBar'}
+                , {field: 'id', width: 80, title: 'ID'}
+                , {field: 'author', width: 100, title: '作者'}
+                , {field: 'createTime', width: 200, title: '创建时间'}
+                , {field: 'reason', width: 550, title: '原因'}
+            ]]
+        });
+
+        var logTableReload = function () {
+            table.reload('logList', {
+                where: {
+                    apiId: id
+                }
+            });
+        };
+
+        table.on('tool(logList)', function (obj) {
+            var data = obj.data;
+            if (obj.event === 'del') {
+                layer.confirm('确定删除该日志吗？', function (index) {
+                    layer.close(index);
+                    $.ajax("/docdoc/manage/api/doc/api/log/del", {
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify({id: data.id}),
+                        dataType: 'json',
+                        success: function (json) {
+                            if (json.success) {
+                                logTableReload();
+                            } else {
+                                layer.open({time: 5000, content: '<div>' + json.message + '</div>'});
+                            }
+                        }
+                    });
+                });
+            }
+        });
+
+        table.render({
+            elem: '#apiRequestFieldList'
+            , width: '1200px'
+            , url: '/docdoc/manage/api/doc/api/field/list'
+            , where: {apiId: id, actionType: 'request'}
+            , cellMinWidth: 80
+            , cols: [[
+                {field: 'op', width: 80, title: '操作', templet: '#toolBar'}
+                , {field: 'id', width: 80, title: 'ID'}
+                , {field: 'meaning', width: 150, title: '参数含义'}
+                , {field: 'name', width: 150, title: '参数名称'}
+                , {field: 'paramType', width: 150, title: '参数类型'}
+                , {field: 'required', width: 150, title: '是否必填', templet: '#requiredTpl'}
+                , {field: 'updateTime', width: 200, title: '更新时间'}
+            ]]
+        });
+
+        var apiRequestFieldTableReload = function () {
+            table.reload('apiRequestFieldList', {
+                where: {
+                    apiId: id,
+                    actionType: 'request'
+                }
+            });
+        };
+
+        table.on('tool(apiRequestFieldList)', function (obj) {
+            var data = obj.data;
+            if (obj.event === 'del') {
+                layer.confirm('确定删除该参数吗？', function (index) {
+                    layer.close(index);
+                    $.ajax("/docdoc/manage/api/doc/api/field/del", {
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify({id: data.id}),
+                        dataType: 'json',
+                        success: function (json) {
+                            if (json.success) {
+                                apiRequestFieldTableReload();
+                            } else {
+                                layer.open({time: 5000, content: '<div>' + json.message + '</div>'});
+                            }
+                        }
+                    });
+                });
+            }
+        });
+
+        table.render({
+            elem: '#apiResponseFieldList'
+            , width: '1200px'
+            , url: '/docdoc/manage/api/doc/api/field/list'
+            , where: {apiId: id, actionType: 'response'}
+            , cellMinWidth: 80
+            , cols: [[
+                {field: 'op', width: 80, title: '操作', templet: '#toolBar'}
+                , {field: 'id', width: 80, title: 'ID'}
+                , {field: 'meaning', width: 150, title: '参数含义'}
+                , {field: 'name', width: 150, title: '参数名称'}
+                , {field: 'paramType', width: 150, title: '参数类型'}
+                , {field: 'required', width: 150, title: '是否必填', templet: '#requiredTpl'}
+                , {field: 'updateTime', width: 200, title: '更新时间'}
+            ]]
+        });
+
+        var apiResponseFieldTableReload = function () {
+            table.reload('apiResponseFieldList', {
+                where: {
+                    apiId: id,
+                    actionType: 'response'
+                }
+            });
+        };
+
+        table.on('tool(apiResponseFieldList)', function (obj) {
+            var data = obj.data;
+            if (obj.event === 'del') {
+                layer.confirm('确定删除该参数吗？', function (index) {
+                    layer.close(index);
+                    $.ajax("/docdoc/manage/api/doc/api/field/del", {
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify({id: data.id}),
+                        dataType: 'json',
+                        success: function (json) {
+                            if (json.success) {
+                                apiResponseFieldTableReload();
+                            } else {
+                                layer.open({time: 5000, content: '<div>' + json.message + '</div>'});
+                            }
+                        }
+                    });
+                });
+            }
+        });
+
+        $("#logAddBtn").click(function () {
+            var $reason = $("#reason");
+            if ($reason.val()) {
+                $.ajax("/docdoc/manage/api/doc/api/log/add", {
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({apiId: id, reason: $reason.val()}),
+                    dataType: 'json',
+                    success: function (json) {
+                        if (json.success) {
+                            logTableReload();
+                            $reason.val("");
+                            $reason.focus();
+                        } else {
+                            layer.open({time: 5000, content: '<div>' + json.message + '</div>'});
+                        }
+                    }
+                });
+            }
+        });
+
+        $("#reason").keypress(function (event) {
+            switch (event.keyCode) {
+                case 13:
+                    $("#logAddBtn").click();
+            }
+        });
+
+        $("#fieldAddBtn").click(function () {
+            var $meaning = $("#meaning");
+            var $fieldName = $("#fieldName");
+            var $paramType = $("#paramType");
+            if ($meaning.val() && $fieldName.val() && $paramType.val()) {
+                var actionType = $("input[name='actionType']:checked").val();
+                $.ajax("/docdoc/manage/api/doc/api/field/add", {
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        apiId: id,
+                        actionType: actionType,
+                        meaning: $meaning.val(),
+                        name: $fieldName.val(),
+                        paramType: $paramType.val(),
+                        required: document.getElementById("required").checked ? 1 : 0
+                    }),
+                    dataType: 'json',
+                    success: function (json) {
+                        if (json.success) {
+                            if (actionType === 'request') {
+                                apiRequestFieldTableReload();
+                            } else {
+                                apiResponseFieldTableReload();
+                            }
+                            $meaning.val("");
+                            $fieldName.val("");
+                            $paramType.val("");
+                            $meaning.focus();
+                        } else {
+                            layer.open({time: 5000, content: '<div>' + json.message + '</div>'});
+                        }
+                    }
+                });
+            }
+        });
+
+        $("#paramType").keypress(function (event) {
+            switch (event.keyCode) {
+                case 13:
+                    $("#fieldAddBtn").click();
+            }
+        });
+    }();
+    /*]]>*/
+</script>
+</body>
+</html>
