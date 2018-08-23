@@ -5,6 +5,8 @@
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
     <link href="/pubs/layui-v2.3.0/layui/css/layui.css" rel="stylesheet"/>
+    <link href="/pubs/highlight/styles/github.css" rel="stylesheet"/>
+    <script src="/pubs/highlight/highlight.pack.js"></script>
     <style type="text/css">
         .layui-table td, .layui-table th {
             position: relative;
@@ -15,12 +17,13 @@
         }
     </style>
 </head>
-<body style="padding: 5px;">
+<body style="padding: 0;">
 
 <div class="layui-tab layui-tab-brief">
     <ul class="layui-tab-title">
         <li class="layui-this">详情</li>
-        <li>请求响应模版</li>
+        <li>请求模版</li>
+        <li>响应模版</li>
     </ul>
     <div class="layui-tab-content">
         <div class="layui-tab-item layui-show">
@@ -139,7 +142,36 @@
                    lay-filter="apiResponseFieldList"></table>
         </div>
         <div class="layui-tab-item">
-
+            <div class="layui-row">
+                <div class="layui-col-xs6">
+                    <button class="layui-btn layui-btn-normal layui-btn-radius">设置默认模版</button>
+                    <div style="padding: 5px">
+                        <pre>
+                            <code class="json" style="height: 500px"></code>
+                        </pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="layui-tab-item">
+            <div class="layui-row">
+                <div class="layui-col-xs6">
+                    <button class="layui-btn layui-btn-radius">设置默认模版</button>
+                    <div style="padding: 5px">
+                        <pre>
+                            <code class="json" style="height: 500px"></code>
+                        </pre>
+                    </div>
+                </div>
+                <div class="layui-col-xs6">
+                    <button class="layui-btn layui-btn-radius">设置自定义模版</button>
+                    <div style="padding: 5px">
+                        <pre>
+                            <code class="json" style="height: 500px"></code>
+                        </pre>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -433,6 +465,14 @@
                     $("#fieldAddBtn").click();
             }
         });
+
+        function highlight() {
+            $('pre code').each(function (i, block) {
+                hljs.highlightBlock(block);
+            });
+        }
+
+        highlight();
     }();
     /*]]>*/
 </script>
