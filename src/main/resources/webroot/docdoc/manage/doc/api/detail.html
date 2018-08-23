@@ -213,45 +213,48 @@
 
         var id = getParameterByName("id", window.location);
 
-        $.ajax("/docdoc/manage/api/doc/api/edit", {
-            type: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify({id: id}),
-            dataType: 'json',
-            success: function (json) {
-                if (json.success) {
-                    $("#name").text(json.data.name);
-                    $("#requestUrl").text(json.data.requestUrl);
-                    $("#authType").text(json.data.authType);
-                    $("#contentType").text(json.data.contentType);
-                    $("#requestMethod").text(json.data.requestMethod);
-                    $("#dataType").text(json.data.dataType);
-                    $("#author").text(json.data.author);
-                    $("#createTime").text(json.data.createTime);
-                    $("#updateTime").text(json.data.updateTime);
-                    var statusDesc;
-                    switch (json.data.status) {
-                        case "develop":
-                            statusDesc = "开发中";
-                            break;
-                        case "developDone":
-                            statusDesc = "开发完成";
-                            break;
-                        case "testDone":
-                            statusDesc = "测试完成";
-                            break;
-                        case "deprecated":
-                            statusDesc = "已过时";
-                            break;
-                        default:
-                            statusDesc = "未知";
+        var loadApiInfo = function () {
+            $.ajax("/docdoc/manage/api/doc/api/edit", {
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({id: id}),
+                dataType: 'json',
+                success: function (json) {
+                    if (json.success) {
+                        $("#name").text(json.data.name);
+                        $("#requestUrl").text(json.data.requestUrl);
+                        $("#authType").text(json.data.authType);
+                        $("#contentType").text(json.data.contentType);
+                        $("#requestMethod").text(json.data.requestMethod);
+                        $("#dataType").text(json.data.dataType);
+                        $("#author").text(json.data.author);
+                        $("#createTime").text(json.data.createTime);
+                        $("#updateTime").text(json.data.updateTime);
+                        var statusDesc;
+                        switch (json.data.status) {
+                            case "develop":
+                                statusDesc = "开发中";
+                                break;
+                            case "developDone":
+                                statusDesc = "开发完成";
+                                break;
+                            case "testDone":
+                                statusDesc = "测试完成";
+                                break;
+                            case "deprecated":
+                                statusDesc = "已过时";
+                                break;
+                            default:
+                                statusDesc = "未知";
+                        }
+                        $("#status").text(statusDesc);
+                    } else {
+                        layer.open({time: 5000, content: '<div>' + json.message + '</div>'});
                     }
-                    $("#status").text(statusDesc);
-                } else {
-                    layer.open({time: 5000, content: '<div>' + json.message + '</div>'});
                 }
-            }
-        });
+            });
+        };
+        loadApiInfo();
 
         table.render({
             elem: '#logList'
