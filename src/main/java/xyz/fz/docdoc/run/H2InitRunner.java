@@ -81,7 +81,7 @@ public class H2InitRunner implements Runnable {
         fieldList.add("author VARCHAR(30), ");
         fieldList.add("createTime TIMESTAMP, ");
         fieldList.add("updateTime TIMESTAMP, ");
-        fieldList.add("requestExample VARCHAR(1000), ");
+        fieldList.add("requestExample VARCHAR(3000), ");
         fieldList.add("responseExample VARCHAR(5000), ");
         fieldList.add("status VARCHAR(20), ");
         fieldList.add("version BIGINT, ");

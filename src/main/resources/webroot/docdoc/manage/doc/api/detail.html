@@ -144,10 +144,10 @@
         <div class="layui-tab-item">
             <div class="layui-row">
                 <div class="layui-col-xs6">
-                    <button class="layui-btn layui-btn-normal layui-btn-radius">设置默认模版</button>
+                    <button class="layui-btn layui-btn-normal layui-btn-radius" id="defaultRequestBtn">设置默认模版</button>
                     <div style="padding: 5px">
                         <pre>
-                            <code class="json" style="height: 500px"></code>
+                            <code class="json" style="height: 500px" id="defaultRequestExample"></code>
                         </pre>
                     </div>
                 </div>
@@ -156,18 +156,21 @@
         <div class="layui-tab-item">
             <div class="layui-row">
                 <div class="layui-col-xs6">
-                    <button class="layui-btn layui-btn-radius">设置默认模版</button>
+                    <button class="layui-btn layui-btn-radius" id="defaultResponseBtn">设置默认模版</button>
                     <div style="padding: 5px">
                         <pre>
-                            <code class="json" style="height: 500px"></code>
+                            <code class="json" style="height: 500px" id="defaultResponseExample"></code>
                         </pre>
                     </div>
                 </div>
                 <div class="layui-col-xs6">
-                    <button class="layui-btn layui-btn-radius">设置自定义模版</button>
+                    <button class="layui-btn layui-btn-radius" id="customResponseBtn">设置自定义模版</button>
+                    <button class="layui-btn layui-btn-danger layui-btn-radius" id="customResponseClearBtn">清空</button>
+                    <span style="color: blue;">【MOCK请求将使用以下数据返回】</span>
+                    <span id="ip" style="color: red;"></span>
                     <div style="padding: 5px">
                         <pre>
-                            <code class="json" style="height: 500px"></code>
+                            <code class="json" style="height: 500px" id="customResponseExample"></code>
                         </pre>
                     </div>
                 </div>
@@ -186,13 +189,23 @@
     <span style="color: red;">否</span>
     {{# } }}
 </script>
+<script id="exampleUpdateTemplate" type="text/html">
+    <div>
+        <textarea id="example" style="width: 700px; height: 500px" placeholder="模版内容"></textarea>
+    </div>
+</script>
 <script type="text/javascript" src="/pubs/layui-v2.3.0/layui/layui.all.js"></script>
 <script type="text/javascript">
     /*<![CDATA[*/
+    var highlight;
     !function () {
         var $ = layui.jquery;
         var layer = layui.layer;
         var table = layui.table;
+
+        highlight = function (id) {
+            hljs.highlightBlock(document.getElementById(id));
+        };
 
         $(document).keyup(function (event) {
             switch (event.keyCode) {
@@ -248,6 +261,10 @@
                                 statusDesc = "未知";
                         }
                         $("#status").text(statusDesc);
+                        $("#defaultRequestExample").text(json.data.requestExample ? json.data.requestExample : "无");
+                        highlight("defaultRequestExample");
+                        $("#defaultResponseExample").text(json.data.responseExample ? json.data.responseExample : "无");
+                        highlight("defaultResponseExample");
                     } else {
                         layer.open({time: 5000, content: '<div>' + json.message + '</div>'});
                     }
@@ -469,13 +486,112 @@
             }
         });
 
-        function highlight() {
-            $('pre code').each(function (i, block) {
-                hljs.highlightBlock(block);
+        var loadApiResponseExample = function () {
+            $.ajax("/docdoc/manage/api/doc/api/response/example/one", {
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    apiId: id
+                }),
+                dataType: 'json',
+                success: function (json) {
+                    if (json.success) {
+                        if (json.data.type === 'custom') {
+                            $("#customResponseExample").text(json.data.response);
+                            $("#ip").text("（模版IP：" + json.data.ip + "）");
+                        } else {
+                            $("#customResponseExample").text(json.data.response ? json.data.response : "无");
+                            $("#ip").text("（使用默认模版）");
+                        }
+                        highlight("customResponseExample");
+                    } else {
+                        layer.open({time: 5000, content: '<div>' + json.message + '</div>'});
+                    }
+                }
             });
+        };
+        loadApiResponseExample();
+
+        function exampleUpdate(type) {
+            return function () {
+                layer.open({
+                    title: '模版编辑'
+                    , area: ['800px', '650px']
+                    , content: $("#exampleUpdateTemplate").html()
+                    , btn: ['更新', '关闭']
+                    , yes: function (index, layero) {
+                        var example = $("#example").val();
+                        var url;
+                        var data = {};
+                        switch (type) {
+                            case "defaultRequest":
+                                url = "/docdoc/manage/api/doc/api/example/update";
+                                data.type = "request";
+                                data.id = id;
+                                data.requestExample = example;
+                                break;
+                            case "defaultResponse":
+                                url = "/docdoc/manage/api/doc/api/example/update";
+                                data.type = "response";
+                                data.id = id;
+                                data.responseExample = example;
+                                break;
+                            case "customResponse":
+                                url = "/docdoc/manage/api/doc/api/response/example/add";
+                                data.apiId = id;
+                                data.responseExample = example;
+                                break;
+                        }
+                        if (example) {
+                            layer.close(index);
+                            $.ajax(url, {
+                                type: 'POST',
+                                contentType: 'application/json',
+                                data: JSON.stringify(data),
+                                dataType: 'json',
+                                success: function (json) {
+                                    if (json.success) {
+                                        loadApiInfo();
+                                        loadApiResponseExample();
+                                    } else {
+                                        layer.open({time: 5000, content: '<div>' + json.message + '</div>'});
+                                    }
+                                }
+                            });
+                        }
+                    }
+                    , close: function (index, layero) {
+                        layer.close(index);
+                    }
+                    , success: function (layero, index) {
+                        var $example = $("#example");
+                        $example.text("");
+                        $example.focus();
+                    }
+                });
+            };
         }
 
-        highlight();
+        $("#defaultRequestBtn").bind("click", exampleUpdate("defaultRequest"));
+        $("#defaultResponseBtn").bind("click", exampleUpdate("defaultResponse"));
+        $("#customResponseBtn").bind("click", exampleUpdate("customResponse"));
+
+        $("#customResponseClearBtn").click(function () {
+            $.ajax("/docdoc/manage/api/doc/api/response/example/del", {
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({"apiId": id}),
+                dataType: 'json',
+                success: function (json) {
+                    if (json.success) {
+                        loadApiInfo();
+                        loadApiResponseExample();
+                    } else {
+                        layer.open({time: 5000, content: '<div>' + json.message + '</div>'});
+                    }
+                }
+            });
+        });
     }();
     /*]]>*/
 </script>

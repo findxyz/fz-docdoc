@@ -127,13 +127,21 @@ public class DocServiceImpl implements DocService {
     @Override
     public JsonObject apiExampleUpdate(JsonObject jsonObject) {
         Long id = Long.valueOf(jsonObject.getValue("id").toString());
+        String type = jsonObject.getString("type");
         String requestExample = jsonObject.getString("requestExample");
         String responseExample = jsonObject.getString("responseExample");
         Optional<Api> fApi = apiRepository.findById(id);
         if (fApi.isPresent()) {
             Api api = fApi.get();
-            api.setRequestExample(requestExample);
-            api.setResponseExample(responseExample);
+            switch (type) {
+                case "request":
+                    api.setRequestExample(requestExample);
+                    break;
+                case "response":
+                    api.setResponseExample(responseExample);
+                    break;
+                default:
+            }
             api = apiRepository.save(api);
             return Result.ofData(api.getId());
         } else {
@@ -390,10 +398,16 @@ public class DocServiceImpl implements DocService {
         ExampleMatcher exampleMatcher = ExampleMatcher.matching();
         Example<ApiResponseExample> apiResponseExample = Example.of(sApiResponseExample, exampleMatcher);
         Optional<ApiResponseExample> fApiResponseExample = apiResponseExampleRepository.findOne(apiResponseExample);
+        Map<String, Object> result = new HashMap<>();
         if (fApiResponseExample.isPresent()) {
-            return Result.ofData(fApiResponseExample.get().getResponseExample());
+            result.put("response", fApiResponseExample.get().getResponseExample());
+            result.put("type", "custom");
+            result.put("ip", fApiResponseExample.get().getIp());
+            return Result.ofData(result);
         } else {
-            return Result.ofData(apiOne(apiId).getResponseExample());
+            result.put("response", apiOne(apiId).getResponseExample());
+            result.put("type", "default");
+            return Result.ofData(result);
         }
     }
 }
