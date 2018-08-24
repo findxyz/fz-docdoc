@@ -40,4 +40,6 @@ public interface DocService {
     JsonObject apiResponseExampleDel(JsonObject jsonObject);
 
     JsonObject apiResponseExampleOne(JsonObject jsonObject);
+
+    JsonObject apiMock(JsonObject jsonObject);
 }

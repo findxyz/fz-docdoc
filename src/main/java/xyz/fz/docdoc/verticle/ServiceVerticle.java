@@ -49,7 +49,8 @@ public class ServiceVerticle extends AbstractVerticle {
         DOC_API_LOG_LIST("DOC_API_LOG_LIST"),
         DOC_API_RESPONSE_EXAMPLE_ADD("DOC_API_RESPONSE_EXAMPLE_ADD"),
         DOC_API_RESPONSE_EXAMPLE_DEL("DOC_API_RESPONSE_EXAMPLE_DEL"),
-        DOC_API_RESPONSE_EXAMPLE_ONE("DOC_API_RESPONSE_EXAMPLE_ONE");
+        DOC_API_RESPONSE_EXAMPLE_ONE("DOC_API_RESPONSE_EXAMPLE_ONE"),
+        DOC_API_MOCK("DOC_API_MOCK");
 
         private String address;
 
@@ -155,6 +156,8 @@ public class ServiceVerticle extends AbstractVerticle {
                     return docService.apiResponseExampleDel(jsonObject);
                 case DOC_API_RESPONSE_EXAMPLE_ONE:
                     return docService.apiResponseExampleOne(jsonObject);
+                case DOC_API_MOCK:
+                    return docService.apiMock(jsonObject);
                 default:
                     throw new RuntimeException("EventBus address not found");
             }

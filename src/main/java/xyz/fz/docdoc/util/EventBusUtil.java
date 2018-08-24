@@ -15,6 +15,8 @@ import xyz.fz.docdoc.verticle.ServiceVerticle;
 import java.util.HashMap;
 import java.util.Map;
 
+import static xyz.fz.docdoc.verticle.HttpVerticle.CONTENT_HTML;
+
 public class EventBusUtil {
 
     private static Logger LOGGER = LoggerFactory.getLogger(EventBusUtil.class);
@@ -53,6 +55,19 @@ public class EventBusUtil {
             jsonObject.mergeIn(curUserJsonObject);
         }
         send(vertx, address, jsonObject, routingContext.response());
+    }
+
+    public static void mockBus(Vertx vertx, RoutingContext routingContext, ServiceVerticle.Address address, JsonObject paramJsonObject) {
+        vertx.eventBus().send(address.toString(), paramJsonObject, asyncResult -> {
+            String result;
+            if (asyncResult.succeeded()) {
+                result = asyncResult.result().body().toString();
+                result = new JsonObject(result).getString("data");
+            } else {
+                result = Result.ofMessage(asyncResult.cause().getMessage()).toString();
+            }
+            routingContext.response().putHeader("Content-Type", CONTENT_HTML).end(result);
+        });
     }
 
     private static void send(Vertx vertx, ServiceVerticle.Address address, JsonObject jsonObject, final HttpServerResponse response) {

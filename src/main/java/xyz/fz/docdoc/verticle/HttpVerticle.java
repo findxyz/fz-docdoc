@@ -6,10 +6,7 @@ import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.Session;
-import io.vertx.ext.web.handler.BodyHandler;
-import io.vertx.ext.web.handler.CookieHandler;
-import io.vertx.ext.web.handler.SessionHandler;
-import io.vertx.ext.web.handler.StaticHandler;
+import io.vertx.ext.web.handler.*;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.web.sstore.SessionStore;
 import org.slf4j.Logger;
@@ -27,7 +24,7 @@ public class HttpVerticle extends AbstractVerticle {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpVerticle.class);
 
-    private static final String CONTENT_HTML = "text/html; charset=utf-8";
+    public static final String CONTENT_HTML = "text/html; charset=utf-8";
 
     private static final String CONTENT_JSON = "application/json; charset=utf-8";
 
@@ -89,6 +86,7 @@ public class HttpVerticle extends AbstractVerticle {
             }
         });
         router.route("/pubs/*").handler(StaticHandler.create());
+        router.route("/favicon.ico").handler(FaviconHandler.create());
     }
 
     private void bodyHandler(Router router) {
@@ -369,7 +367,14 @@ public class HttpVerticle extends AbstractVerticle {
 
     private void docdocMappingHandler(Router router) {
         router.route("/*").handler(routingContext -> {
-            routingContext.response().putHeader("Content-Type", CONTENT_JSON).end("docdocMapping");
+            EventBusUtil.mockBus(
+                    vertx,
+                    routingContext,
+                    ServiceVerticle.Address.DOC_API_MOCK,
+                    new JsonObject()
+                            .put("ip", IpAddressUtil.getIpAddress(routingContext.request()))
+                            .put("url", routingContext.request().path())
+            );
         });
     }
 

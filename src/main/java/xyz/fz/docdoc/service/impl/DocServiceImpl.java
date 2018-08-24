@@ -444,4 +444,30 @@ public class DocServiceImpl implements DocService {
             return Result.ofData(result);
         }
     }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public JsonObject apiMock(JsonObject jsonObject) {
+        String mockResult = "docdocNoMapping";
+        String url = jsonObject.getString("url");
+        Api sApi = new Api();
+        sApi.setRequestUrl(url);
+        sApi.setIsActivity(1);
+        sApi.setVersion(null);
+        ExampleMatcher exampleMatcher = ExampleMatcher.matching()
+                .withMatcher("requestUrl", ExampleMatcher.GenericPropertyMatchers.exact())
+                .withMatcher("isActivity", ExampleMatcher.GenericPropertyMatchers.exact());
+        Example<Api> apiExample = Example.of(sApi, exampleMatcher);
+        Optional<Api> fApi = apiRepository.findOne(apiExample);
+        if (fApi.isPresent()) {
+            Api api = fApi.get();
+            jsonObject.put("apiId", api.getId());
+            JsonObject result = apiResponseExampleOne(jsonObject);
+            Map<String, Object> dataMap = ((JsonObject) result.getValue("data")).getMap();
+            if (dataMap != null) {
+                mockResult = dataMap.get("response") != null ? dataMap.get("response").toString() : mockResult;
+            }
+        }
+        return Result.ofData(mockResult);
+    }
 }
