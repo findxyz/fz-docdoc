@@ -25,6 +25,8 @@ public interface DocService {
 
     JsonObject apiFieldDel(JsonObject jsonObject);
 
+    JsonObject apiFieldOrder(JsonObject jsonObject);
+
     JsonObject apiFieldList(JsonObject jsonObject);
 
     JsonObject apiLogAdd(JsonObject jsonObject);

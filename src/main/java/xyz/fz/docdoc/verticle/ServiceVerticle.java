@@ -42,6 +42,7 @@ public class ServiceVerticle extends AbstractVerticle {
         DOC_API_STATUS("DOC_API_STATUS"),
         DOC_API_FIELD_ADD("DOC_API_FIELD_ADD"),
         DOC_API_FIELD_DEL("DOC_API_FIELD_DEL"),
+        DOC_API_FIELD_ORDER("DOC_API_FIELD_ORDER"),
         DOC_API_FIELD_LIST("DOC_API_FIELD_LIST"),
         DOC_API_LOG_ADD("DOC_API_LOG_ADD"),
         DOC_API_LOG_DEL("DOC_API_LOG_DEL"),
@@ -138,6 +139,8 @@ public class ServiceVerticle extends AbstractVerticle {
                     return docService.apiFieldAdd(jsonObject);
                 case DOC_API_FIELD_DEL:
                     return docService.apiFieldDel(jsonObject);
+                case DOC_API_FIELD_ORDER:
+                    return docService.apiFieldOrder(jsonObject);
                 case DOC_API_FIELD_LIST:
                     return docService.apiFieldList(jsonObject);
                 case DOC_API_LOG_ADD:

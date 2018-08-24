@@ -331,6 +331,10 @@ public class HttpVerticle extends AbstractVerticle {
             EventBusUtil.jsonBus(vertx, routingContext, ServiceVerticle.Address.DOC_API_FIELD_DEL);
         });
 
+        router.route("/docdoc/manage/api/doc/api/field/order").handler(routingContext -> {
+            EventBusUtil.jsonBus(vertx, routingContext, ServiceVerticle.Address.DOC_API_FIELD_ORDER);
+        });
+
         router.route("/docdoc/manage/api/doc/api/field/list").handler(routingContext -> {
             EventBusUtil.formBus(vertx, routingContext, ServiceVerticle.Address.DOC_API_FIELD_LIST);
         });

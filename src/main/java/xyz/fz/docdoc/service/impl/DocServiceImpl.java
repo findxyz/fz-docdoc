@@ -250,6 +250,7 @@ public class DocServiceImpl implements DocService {
             apiField = new ApiField();
             apiField.setApiId(apiId);
             apiField.setIsActivity(1);
+            apiField.setVersion(System.currentTimeMillis() / 1000L);
         }
         apiField.setActionType(actionType);
         apiField.setMeaning(meaning);
@@ -276,6 +277,39 @@ public class DocServiceImpl implements DocService {
     }
 
     @Override
+    public JsonObject apiFieldOrder(JsonObject jsonObject) {
+        Long id = Long.valueOf(jsonObject.getValue("id").toString());
+        String type = jsonObject.getString("type");
+        Optional<ApiField> fApiField = apiFieldRepository.findById(id);
+        if (fApiField.isPresent()) {
+            ApiField curApiField = fApiField.get();
+            Long curVersion = curApiField.getVersion();
+            List<ApiField> list;
+            switch (type) {
+                case "up":
+                    list = apiFieldRepository.findByVersionLessThanAndActionTypeAndIsActivityOrderByVersionDesc(curVersion, curApiField.getActionType(), 1);
+                    break;
+                case "down":
+                    list = apiFieldRepository.findByVersionGreaterThanAndActionTypeAndIsActivityOrderByVersionAsc(curVersion, curApiField.getActionType(), 1);
+                    break;
+                default:
+                    throw new RuntimeException("调整类型错误");
+            }
+            if (list != null && list.size() > 0) {
+                ApiField swapApiField = list.get(0);
+                Long swapVersion = swapApiField.getVersion();
+                swapApiField.setVersion(curVersion);
+                curApiField.setVersion(swapVersion);
+                apiFieldRepository.save(swapApiField);
+                apiFieldRepository.save(curApiField);
+            }
+            return Result.ofSuccess();
+        } else {
+            throw new RuntimeException("API文档字段不存在");
+        }
+    }
+
+    @Override
     public JsonObject apiFieldList(JsonObject jsonObject) {
         Long apiId = Long.valueOf(jsonObject.getValue("apiId").toString());
         String actionType = jsonObject.getString("actionType");
@@ -286,7 +320,7 @@ public class DocServiceImpl implements DocService {
         sApiField.setVersion(null);
         ExampleMatcher exampleMatcher = ExampleMatcher.matching();
         Example<ApiField> apiFieldExample = Example.of(sApiField, exampleMatcher);
-        Sort sort = Sort.by(Sort.Direction.ASC, "id");
+        Sort sort = Sort.by(Sort.Direction.ASC, "version");
         List<ApiField> list = apiFieldRepository.findAll(apiFieldExample, sort);
 
         JsonObject result = new JsonObject();

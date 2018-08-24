@@ -40,7 +40,6 @@ public class ApiField {
     @Column(name = "updateTime")
     private Date updateTime;
 
-    @Version
     @Column(name = "version", columnDefinition = "BIGINT DEFAULT 0")
     private Long version = 0L;
 
