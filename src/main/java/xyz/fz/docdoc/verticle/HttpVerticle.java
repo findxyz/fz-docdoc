@@ -34,8 +34,6 @@ public class HttpVerticle extends AbstractVerticle {
 
     private static final String ADMIN_REQUIRE_MESSAGE = "需要管理员权限";
 
-    private static final String STATIC_HTML = ".html";
-
     private static SessionStore sessionStore;
 
     private static ConcurrentHashMap<String, String> loginUserMap = new ConcurrentHashMap<>();
@@ -78,13 +76,6 @@ public class HttpVerticle extends AbstractVerticle {
     }
 
     private void staticHandler(Router router) {
-        router.route("/pubs/*").handler(routingContext -> {
-            if (routingContext.request().uri().contains(STATIC_HTML)) {
-                routingContext.response().putHeader("location", "/").setStatusCode(302).end();
-            } else {
-                routingContext.next();
-            }
-        });
         router.route("/pubs/*").handler(StaticHandler.create());
         router.route("/favicon.ico").handler(FaviconHandler.create());
     }
@@ -112,7 +103,7 @@ public class HttpVerticle extends AbstractVerticle {
 
     private void indexLoginLogoutHandler(Router router) {
         router.route("/").handler(routingContext -> {
-            routingContext.response().putHeader("Content-Type", CONTENT_HTML).sendFile("webroot/login.html");
+            routingContext.response().putHeader("Content-Type", CONTENT_HTML).sendFile("templates/login.html");
         });
 
         router.route("/doLogin").handler(routingContext -> {
@@ -178,7 +169,7 @@ public class HttpVerticle extends AbstractVerticle {
 
     private void homeHandler(Router router) {
         router.route("/docdoc/manage/html/home").handler(routingContext -> {
-            routingContext.response().sendFile("webroot/docdoc/manage/home.html");
+            routingContext.response().sendFile("templates/docdoc/manage/home.html");
         });
 
         router.route("/docdoc/manage/api/login/info").handler(routingContext -> {
@@ -214,7 +205,7 @@ public class HttpVerticle extends AbstractVerticle {
         });
 
         router.route("/docdoc/manage/html/user/main").handler(routingContext -> {
-            routingContext.response().sendFile("webroot/docdoc/manage/user/main.html");
+            routingContext.response().sendFile("templates/docdoc/manage/user/main.html");
         });
 
         router.route("/docdoc/manage/api/user/add").handler(routingContext -> {
@@ -267,19 +258,19 @@ public class HttpVerticle extends AbstractVerticle {
 
     private void docHandler(Router router) {
         router.route("/docdoc/manage/html/doc/main").handler(routingContext -> {
-            routingContext.response().sendFile("webroot/docdoc/manage/doc/main.html");
+            routingContext.response().sendFile("templates/docdoc/manage/doc/main.html");
         });
 
         router.route("/docdoc/manage/html/doc/api/main").handler(routingContext -> {
-            routingContext.response().sendFile("webroot/docdoc/manage/doc/api/main.html");
+            routingContext.response().sendFile("templates/docdoc/manage/doc/api/main.html");
         });
 
         router.route("/docdoc/manage/html/doc/api/add").handler(routingContext -> {
-            routingContext.response().sendFile("webroot/docdoc/manage/doc/api/add.html");
+            routingContext.response().sendFile("templates/docdoc/manage/doc/api/add.html");
         });
 
         router.route("/docdoc/manage/html/doc/api/detail").handler(routingContext -> {
-            routingContext.response().sendFile("webroot/docdoc/manage/doc/api/detail.html");
+            routingContext.response().sendFile("templates/docdoc/manage/doc/api/detail.html");
         });
 
         router.route("/docdoc/manage/api/doc/project/add").handler(routingContext -> {
