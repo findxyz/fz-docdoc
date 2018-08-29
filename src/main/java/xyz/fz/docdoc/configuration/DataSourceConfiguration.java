@@ -50,10 +50,10 @@ public class DataSourceConfiguration {
     public LocalContainerEntityManagerFactoryBean entityManagerFactory(final DataSource dataSource) {
         final LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();
         factory.setDataSource(dataSource);
-        HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
-        vendorAdapter.setShowSql(Boolean.TRUE);
+        HibernateJpaVendorAdapter hibernateJpaVendorAdapter = new HibernateJpaVendorAdapter();
+        hibernateJpaVendorAdapter.setShowSql(Boolean.TRUE);
         factory.setDataSource(dataSource);
-        factory.setJpaVendorAdapter(vendorAdapter);
+        factory.setJpaVendorAdapter(hibernateJpaVendorAdapter);
         factory.setPackagesToScan("xyz.fz.docdoc.entity");
         Properties jpaProperties = new Properties();
         jpaProperties.put("hibernate.dialect", env.getProperty("hibernate.dialect"));
