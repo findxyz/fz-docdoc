@@ -38,6 +38,7 @@ public class Result {
         JsonObject result = new JsonObject();
         result.put("success", false);
         result.put("redirect", redirect);
+        result.put("message", "会话已过期，请重新登录");
         return result;
     }
 
