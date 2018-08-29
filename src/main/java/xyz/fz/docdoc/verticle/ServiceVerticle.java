@@ -32,6 +32,7 @@ public class ServiceVerticle extends AbstractVerticle {
         USER_ADMIN_UPDATE("USER_ADMIN_UPDATE"),
 
         DOC_PROJECT_ADD("DOC_PROJECT_ADD"),
+        DOC_PROJECT_EDIT("DOC_PROJECT_EDIT"),
         DOC_PROJECT_DEL("DOC_PROJECT_DEL"),
         DOC_PROJECT_LIST("DOC_PROJECT_LIST"),
         DOC_API_ADD("DOC_API_ADD"),
@@ -120,6 +121,8 @@ public class ServiceVerticle extends AbstractVerticle {
                     return userService.adminUpdate(jsonObject);
                 case DOC_PROJECT_ADD:
                     return docService.projectAdd(jsonObject);
+                case DOC_PROJECT_EDIT:
+                    return docService.projectEdit(jsonObject);
                 case DOC_PROJECT_DEL:
                     return docService.projectDel(jsonObject);
                 case DOC_PROJECT_LIST:

@@ -62,6 +62,21 @@ public class DocServiceImpl implements DocService {
     }
 
     @Override
+    public JsonObject projectEdit(JsonObject jsonObject) {
+        Long id = Long.valueOf(jsonObject.getValue("id").toString());
+        String name = jsonObject.getString("name");
+        Optional<Project> fProject = projectRepository.findById(id);
+        if (fProject.isPresent()) {
+            Project project = fProject.get();
+            project.setName(name);
+            projectRepository.save(project);
+            return Result.ofSuccess();
+        } else {
+            throw new RuntimeException("项目不存在");
+        }
+    }
+
+    @Override
     public JsonObject projectDel(JsonObject jsonObject) {
         Long id = Long.valueOf(jsonObject.getValue("id").toString());
         Optional<Project> fProject = projectRepository.findById(id);

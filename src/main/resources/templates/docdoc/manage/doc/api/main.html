@@ -12,6 +12,7 @@
     <div>
         <button class="layui-btn layui-btn-primary" id="back"><i class="layui-icon">&#xe603;</i></button>
         <button class="layui-btn" id="addBtn">新增API</button>
+        <button class="layui-btn layui-btn-warm" id="editBtn">修改项目名</button>
         <button class="layui-btn layui-btn-danger" id="delBtn">删除本项目</button>
         <button class="layui-btn layui-btn-normal" id="searchBtn">查询</button>
         <span style="display: none" id="popCloseBtn"></span>
@@ -49,9 +50,7 @@
     <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
     <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
 </script>
-
-<script type="text/javascript" src="/pubs/layui-v2.3.0/layui/layui.all.js"></script>
-<script type="text/html" id="statusTpl">
+<script id="statusTpl" type="text/html">
     {{# if (d.status === 'develop') { }}
     <span style="color: #1E9FFF;">开发中</span>
     {{# } else if (d.status === 'developDone') { }}
@@ -64,6 +63,33 @@
     <span style="color: red;">异常状态</span>
     {{# } }}
 </script>
+<script id="statusUpdateTemplate" type="text/html">
+    <form class="layui-form">
+        <div class="layui-form-item">
+            <label class="layui-form-label">更新状态</label>
+            <div class="layui-input-inline">
+                <select id="statusUpdate" name="statusUpdate">
+                    <option value="develop">开发中</option>
+                    <option value="developDone">开发完成</option>
+                    <option value="testDone">测试完成</option>
+                    <option value="deprecated">已过时</option>
+                </select>
+            </div>
+        </div>
+    </form>
+</script>
+<script id="projectNameUpdateTemplate" type="text/html">
+    <div class="layui-form layui-form-pane">
+        <div class="layui-form-item">
+            <label class="layui-form-label">项目名称</label>
+            <div class="layui-input-block">
+                <input type="text" id="projectName" autocomplete="off" class="layui-input"/>
+            </div>
+        </div>
+    </div>
+</script>
+
+<script type="text/javascript" src="/pubs/layui-v2.3.0/layui/layui.all.js"></script>
 <script type="text/javascript">
     /*<![CDATA[*/
     !function () {
@@ -167,7 +193,6 @@
                     type: 2,
                     title: '修改API',
                     shadeClose: true,
-                    shade: 0.8,
                     area: ['950px', '490px'],
                     content: '/docdoc/manage/html/doc/api/add?id=' + data.id,
                     cancel: function () {
@@ -206,7 +231,6 @@
                 type: 2,
                 title: '新增API',
                 shadeClose: true,
-                shade: 0.8,
                 area: ['950px', '490px'],
                 content: '/docdoc/manage/html/doc/api/add?projectId=' + projectId,
                 cancel: function () {
@@ -216,6 +240,46 @@
                 yes: function () {
                     tableReload();
                     layer.closeAll();
+                }
+            });
+        });
+
+        $("#editBtn").click(function () {
+            layer.open({
+                title: '修改项目名',
+                shadeClose: true,
+                area: '400px',
+                content: $("#projectNameUpdateTemplate").html(),
+                cancel: function () {
+                    layer.closeAll();
+                },
+                btn: ['更新', '关闭'],
+                yes: function () {
+                    var $projectName = $("#projectName");
+                    if ($projectName.val()) {
+                        $.ajax("/docdoc/manage/api/doc/project/edit", {
+                            type: 'POST',
+                            contentType: 'application/json',
+                            data: JSON.stringify({
+                                id: projectId,
+                                name: $projectName.val()
+                            }),
+                            dataType: 'json',
+                            success: function (json) {
+                                if (json.success) {
+                                    window.location = '/docdoc/manage/html/doc/main';
+                                } else {
+                                    layer.open({time: 5000, content: '<div>' + json.message + '</div>'});
+                                }
+                            }
+                        });
+                    }
+                },
+                close: function () {
+                    layer.closeAll();
+                },
+                success: function (layero, index) {
+                    $("#projectName").focus();
                 }
             });
         });
@@ -254,21 +318,6 @@
         });
     }();
     /*]]>*/
-</script>
-<script id="statusUpdateTemplate" type="text/html">
-    <form class="layui-form">
-        <div class="layui-form-item">
-            <label class="layui-form-label">更新状态</label>
-            <div class="layui-input-inline">
-                <select id="statusUpdate" name="statusUpdate">
-                    <option value="develop">开发中</option>
-                    <option value="developDone">开发完成</option>
-                    <option value="testDone">测试完成</option>
-                    <option value="deprecated">已过时</option>
-                </select>
-            </div>
-        </div>
-    </form>
 </script>
 </body>
 </html>

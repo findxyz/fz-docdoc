@@ -277,6 +277,10 @@ public class HttpVerticle extends AbstractVerticle {
             EventBusUtil.jsonBus(vertx, routingContext, ServiceVerticle.Address.DOC_PROJECT_ADD);
         });
 
+        router.route("/docdoc/manage/api/doc/project/edit").handler(routingContext -> {
+            EventBusUtil.jsonBus(vertx, routingContext, ServiceVerticle.Address.DOC_PROJECT_EDIT);
+        });
+
         router.route("/docdoc/manage/api/doc/project/del").handler(routingContext -> {
             EventBusUtil.jsonBus(vertx, routingContext, ServiceVerticle.Address.DOC_PROJECT_DEL);
         });

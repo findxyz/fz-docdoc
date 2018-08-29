@@ -5,6 +5,8 @@ import io.vertx.core.json.JsonObject;
 public interface DocService {
     JsonObject projectAdd(JsonObject jsonObject);
 
+    JsonObject projectEdit(JsonObject jsonObject);
+
     JsonObject projectDel(JsonObject jsonObject);
 
     JsonObject projectList(JsonObject jsonObject);
