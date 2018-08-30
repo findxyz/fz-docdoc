@@ -4,7 +4,7 @@
     <title>doc api detail</title>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
-    <link href="/pubs/layui-v2.3.0/layui/css/layui.css" rel="stylesheet"/>
+    <link href="/pubs/layui-v2.4.2/layui/css/layui.css" rel="stylesheet"/>
     <link href="/pubs/highlight/styles/github.css" rel="stylesheet"/>
     <script src="/pubs/highlight/highlight.pack.js"></script>
 </head>
@@ -217,7 +217,7 @@
         </div>
     </form>
 </script>
-<script type="text/javascript" src="/pubs/layui-v2.3.0/layui/layui.all.js"></script>
+<script type="text/javascript" src="/pubs/layui-v2.4.2/layui/layui.all.js"></script>
 <script type="text/javascript">
     /*<![CDATA[*/
     var highlight;
@@ -305,7 +305,7 @@
             , where: {apiId: id}
             , cellMinWidth: 80
             , cols: [[
-                {field: 'id', width: 80, title: 'ID'}
+                {field: 'id', width: 80, title: 'ID', hide: true}
                 , {field: 'op', width: 80, title: '操作', templet: '#logToolBar'}
                 , {field: 'author', width: 100, title: '作者'}
                 , {field: 'createTime', width: 200, title: '创建时间'}
@@ -494,7 +494,7 @@
             , where: {apiId: id, actionType: 'request'}
             , cellMinWidth: 80
             , cols: [[
-                {field: 'id', width: 60, title: 'ID'}
+                {field: 'id', width: 60, title: 'ID', hide: true}
                 , {field: 'op', width: 200, title: '操作', templet: '#toolBar'}
                 , {field: 'meaning', width: 160, title: '参数含义'}
                 , {field: 'name', width: 180, title: '参数名称'}
@@ -524,7 +524,7 @@
             , where: {apiId: id, actionType: 'response'}
             , cellMinWidth: 80
             , cols: [[
-                {field: 'id', width: 60, title: 'ID'}
+                {field: 'id', width: 60, title: 'ID', hide: true}
                 , {field: 'op', width: 200, title: '操作', templet: '#toolBar'}
                 , {field: 'meaning', width: 160, title: '参数含义'}
                 , {field: 'name', width: 180, title: '参数名称'}
