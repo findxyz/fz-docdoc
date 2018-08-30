@@ -7,6 +7,16 @@
     <link href="/pubs/layui-v2.4.2/layui/css/layui.css" rel="stylesheet"/>
     <link href="/pubs/highlight/styles/github.css" rel="stylesheet"/>
     <script src="/pubs/highlight/highlight.pack.js"></script>
+    <style type="text/css">
+        .layui-table, .layui-table-view {
+            margin: 5px 0;
+        }
+
+        .layui-form-item {
+            margin: 5px 0;
+            clear: both;
+        }
+    </style>
 </head>
 <body>
 
@@ -63,7 +73,7 @@
                 </tbody>
             </table>
 
-            <span class="layui-badge layui-bg-green" style="margin-bottom: 10px;">字段列表</span>
+            <span class="layui-badge layui-bg-green">字段列表</span>
             <div class="layui-form layui-form-pane">
                 <div class="layui-form-item">
                     <div class="layui-inline">
@@ -105,20 +115,20 @@
             </div>
 
             <span class="layui-badge layui-bg-green">请求字段列表</span>
-            <table class="layui-table" id="apiRequestFieldList" lay-filter="apiRequestFieldList" style="margin-top: 0;"></table>
+            <table class="layui-table" id="apiRequestFieldList" lay-filter="apiRequestFieldList"></table>
 
             <span class="layui-badge layui-bg-green">响应字段列表</span>
-            <table class="layui-table" id="apiResponseFieldList" lay-filter="apiResponseFieldList" style="margin-top: 0;"></table>
+            <table class="layui-table" id="apiResponseFieldList" lay-filter="apiResponseFieldList"></table>
 
-            <span class="layui-badge layui-bg-red" style="margin-bottom: 10px;">变动日志</span>
-            <div class="layui-form-item layui-form-pane" style="margin-bottom: 0;">
+            <span class="layui-badge layui-bg-red">变动日志</span>
+            <div class="layui-form-item layui-form-pane">
                 <label class="layui-form-label">新增日志</label>
                 <div class="layui-input-inline" style="width: 500px;">
                     <input type="text" id="reason" autocomplete="off" placeholder="变动原因" class="layui-input"/>
                 </div>
                 <button class="layui-btn layui-btn-normal" id="logAddBtn">新增</button>
             </div>
-            <table class="layui-table" id="logList" lay-filter="logList" style="margin-top: 0;"></table>
+            <table class="layui-table" id="logList" lay-filter="logList"></table>
 
         </div>
         <div class="layui-tab-item">
