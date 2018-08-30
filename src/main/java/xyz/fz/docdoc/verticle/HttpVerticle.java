@@ -103,7 +103,12 @@ public class HttpVerticle extends AbstractVerticle {
 
     private void indexLoginLogoutHandler(Router router) {
         router.route("/").handler(routingContext -> {
-            routingContext.response().putHeader("Content-Type", CONTENT_HTML).sendFile("templates/login.html");
+            Session session = routingContext.session();
+            if (session.get(CUR_USER) == null) {
+                routingContext.response().putHeader("Content-Type", CONTENT_HTML).sendFile("templates/login.html");
+            } else {
+                routingContext.response().sendFile("templates/docdoc/manage/home.html");
+            }
         });
 
         router.route("/doLogin").handler(routingContext -> {

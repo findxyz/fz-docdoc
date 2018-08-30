@@ -7,19 +7,10 @@
     <link href="/pubs/layui-v2.3.0/layui/css/layui.css" rel="stylesheet"/>
     <link href="/pubs/highlight/styles/github.css" rel="stylesheet"/>
     <script src="/pubs/highlight/highlight.pack.js"></script>
-    <style type="text/css">
-        .layui-table td, .layui-table th {
-            position: relative;
-            min-height: 20px;
-            line-height: 20px;
-            font-size: 18px;
-            padding: 9px 15px;
-        }
-    </style>
 </head>
-<body style="padding: 0;">
+<body>
 
-<div class="layui-tab layui-tab-brief">
+<div class="layui-tab">
     <ul class="layui-tab-title">
         <li class="layui-this">详情</li>
         <li>请求模版</li>
@@ -27,10 +18,9 @@
     </ul>
     <div class="layui-tab-content">
         <div class="layui-tab-item layui-show">
-            <fieldset class="layui-elem-field layui-field-title">
-                <legend>基础信息</legend>
-            </fieldset>
-            <table class="layui-table" lay-even="" lay-skin="row">
+
+            <span class="layui-badge layui-bg-blue">基础信息</span>
+            <table class="layui-table">
                 <colgroup>
                     <col width="200"/>
                     <col width="350"/>
@@ -72,57 +62,40 @@
                 </tr>
                 </tbody>
             </table>
-            <fieldset class="layui-elem-field layui-field-title">
-                <legend>变动日志</legend>
-            </fieldset>
-            <div class="layui-form-item">
-                <label class="layui-form-label" style="font-size: 18px;">新增日志</label>
-                <div class="layui-input-inline" style="width: 500px;">
-                    <input type="text" id="reason" autocomplete="off" placeholder="变动原因"
-                           style="font-size: 18px"
-                           class="layui-input"/>
-                </div>
-                <button class="layui-btn layui-btn-normal" id="logAddBtn">新增</button>
-            </div>
-            <table class="layui-table" lay-even="" lay-skin="row" id="logList" lay-filter="logList"></table>
-            <fieldset class="layui-elem-field layui-field-title">
-                <legend>字段列表</legend>
-            </fieldset>
-            <div class="layui-form">
+
+            <span class="layui-badge layui-bg-green" style="margin-bottom: 10px;">字段列表</span>
+            <div class="layui-form layui-form-pane">
                 <div class="layui-form-item">
                     <div class="layui-inline">
-                        <label class="layui-form-label" style="font-size: 18px">参数类型</label>
+                        <label class="layui-form-label">参数类型</label>
                         <div class="layui-input-inline">
                             <input type="radio" name="actionType" value="request" title="请求" checked=""/>
                             <input type="radio" name="actionType" value="response" title="响应"/>
                         </div>
                     </div>
                     <div class="layui-inline">
-                        <label class="layui-form-label" style="font-size: 18px">是否必填</label>
+                        <label class="layui-form-label">是否必填</label>
                         <div class="layui-input-block">
                             <input type="checkbox" id="required" checked="" lay-skin="switch" lay-text="是|否"/>
                         </div>
                     </div>
                     <br/>
                     <div class="layui-inline">
-                        <label class="layui-form-label" style="font-size: 18px">参数含义</label>
+                        <label class="layui-form-label">参数含义</label>
                         <div class="layui-input-inline">
-                            <input type="text" id="meaning" autocomplete="off" class="layui-input"
-                                   style="font-size: 18px"/>
+                            <input type="text" id="meaning" autocomplete="off" class="layui-input"/>
                         </div>
                     </div>
                     <div class="layui-inline">
-                        <label class="layui-form-label" style="font-size: 18px">参数名称</label>
+                        <label class="layui-form-label">参数名称</label>
                         <div class="layui-input-inline">
-                            <input type="text" id="fieldName" autocomplete="off" class="layui-input"
-                                   style="font-size: 18px"/>
+                            <input type="text" id="fieldName" autocomplete="off" class="layui-input"/>
                         </div>
                     </div>
                     <div class="layui-inline">
-                        <label class="layui-form-label" style="font-size: 18px">参数类型</label>
+                        <label class="layui-form-label">参数类型</label>
                         <div class="layui-input-inline">
-                            <input type="text" id="paramType" autocomplete="off" class="layui-input"
-                                   style="font-size: 18px"/>
+                            <input type="text" id="paramType" autocomplete="off" class="layui-input"/>
                         </div>
                     </div>
                     <div class="layui-inline">
@@ -130,16 +103,23 @@
                     </div>
                 </div>
             </div>
-            <fieldset class="layui-elem-field layui-field-title">
-                <legend>请求字段列表</legend>
-            </fieldset>
-            <table class="layui-table" lay-even="" lay-skin="row" id="apiRequestFieldList"
-                   lay-filter="apiRequestFieldList"></table>
-            <fieldset class="layui-elem-field layui-field-title">
-                <legend>响应字段列表</legend>
-            </fieldset>
-            <table class="layui-table" lay-even="" lay-skin="row" id="apiResponseFieldList"
-                   lay-filter="apiResponseFieldList"></table>
+
+            <span class="layui-badge layui-bg-green">请求字段列表</span>
+            <table class="layui-table" id="apiRequestFieldList" lay-filter="apiRequestFieldList" style="margin-top: 0;"></table>
+
+            <span class="layui-badge layui-bg-green">响应字段列表</span>
+            <table class="layui-table" id="apiResponseFieldList" lay-filter="apiResponseFieldList" style="margin-top: 0;"></table>
+
+            <span class="layui-badge layui-bg-red" style="margin-bottom: 10px;">变动日志</span>
+            <div class="layui-form-item layui-form-pane" style="margin-bottom: 0;">
+                <label class="layui-form-label">新增日志</label>
+                <div class="layui-input-inline" style="width: 500px;">
+                    <input type="text" id="reason" autocomplete="off" placeholder="变动原因" class="layui-input"/>
+                </div>
+                <button class="layui-btn layui-btn-normal" id="logAddBtn">新增</button>
+            </div>
+            <table class="layui-table" id="logList" lay-filter="logList" style="margin-top: 0;"></table>
+
         </div>
         <div class="layui-tab-item">
             <div class="layui-row">
@@ -205,37 +185,34 @@
 <script id="fieldUpdateTemplate" type="text/html">
     <form class="layui-form layui-form-pane" lay-filter="fieldForm" id="fieldForm" method="post">
         <div class="layui-form-item">
-            <label class="layui-form-label" style="font-size: 18px">参数类型</label>
+            <label class="layui-form-label">参数类型</label>
             <div class="layui-input-block">
                 <input type="radio" name="editActionType" value="request" title="请求" checked=""/>
                 <input type="radio" name="editActionType" value="response" title="响应"/>
             </div>
         </div>
         <div class="layui-form-item">
-            <label class="layui-form-label" style="font-size: 18px">是否必填</label>
+            <label class="layui-form-label">是否必填</label>
             <div class="layui-input-block">
                 <input type="checkbox" id="editRequired" checked="" lay-skin="switch" lay-text="是|否"/>
             </div>
         </div>
         <div class="layui-form-item">
-            <label class="layui-form-label" style="font-size: 18px">参数含义</label>
+            <label class="layui-form-label">参数含义</label>
             <div class="layui-input-block">
-                <input type="text" id="editMeaning" autocomplete="off" class="layui-input"
-                       style="font-size: 18px"/>
+                <input type="text" id="editMeaning" autocomplete="off" class="layui-input"/>
             </div>
         </div>
         <div class="layui-form-item">
-            <label class="layui-form-label" style="font-size: 18px">参数名称</label>
+            <label class="layui-form-label">参数名称</label>
             <div class="layui-input-block">
-                <input type="text" id="editFieldName" autocomplete="off" class="layui-input"
-                       style="font-size: 18px"/>
+                <input type="text" id="editFieldName" autocomplete="off" class="layui-input"/>
             </div>
         </div>
         <div class="layui-form-item">
-            <label class="layui-form-label" style="font-size: 18px">参数类型</label>
+            <label class="layui-form-label">参数类型</label>
             <div class="layui-input-block">
-                <input type="text" id="editParamType" autocomplete="off" class="layui-input"
-                       style="font-size: 18px"/>
+                <input type="text" id="editParamType" autocomplete="off" class="layui-input"/>
             </div>
         </div>
     </form>
@@ -328,8 +305,8 @@
             , where: {apiId: id}
             , cellMinWidth: 80
             , cols: [[
-                {field: 'op', width: 80, title: '操作', templet: '#logToolBar'}
-                , {field: 'id', width: 80, title: 'ID'}
+                {field: 'id', width: 80, title: 'ID'}
+                , {field: 'op', width: 80, title: '操作', templet: '#logToolBar'}
                 , {field: 'author', width: 100, title: '作者'}
                 , {field: 'createTime', width: 200, title: '创建时间'}
                 , {field: 'reason', width: 550, title: '原因'}
@@ -517,8 +494,8 @@
             , where: {apiId: id, actionType: 'request'}
             , cellMinWidth: 80
             , cols: [[
-                {field: 'op', width: 200, title: '操作', templet: '#toolBar'}
-                , {field: 'id', width: 60, title: 'ID'}
+                {field: 'id', width: 60, title: 'ID'}
+                , {field: 'op', width: 200, title: '操作', templet: '#toolBar'}
                 , {field: 'meaning', width: 160, title: '参数含义'}
                 , {field: 'name', width: 180, title: '参数名称'}
                 , {field: 'paramType', width: 130, title: '参数类型'}
@@ -547,8 +524,8 @@
             , where: {apiId: id, actionType: 'response'}
             , cellMinWidth: 80
             , cols: [[
-                {field: 'op', width: 200, title: '操作', templet: '#toolBar'}
-                , {field: 'id', width: 60, title: 'ID'}
+                {field: 'id', width: 60, title: 'ID'}
+                , {field: 'op', width: 200, title: '操作', templet: '#toolBar'}
                 , {field: 'meaning', width: 160, title: '参数含义'}
                 , {field: 'name', width: 180, title: '参数名称'}
                 , {field: 'paramType', width: 130, title: '参数类型'}
