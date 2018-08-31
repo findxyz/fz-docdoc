@@ -1,11 +1,15 @@
 package xyz.fz.docdoc.service.impl;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import io.vertx.core.json.JsonObject;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.Sort;
@@ -16,8 +20,12 @@ import xyz.fz.docdoc.entity.*;
 import xyz.fz.docdoc.model.Result;
 import xyz.fz.docdoc.repository.*;
 import xyz.fz.docdoc.service.DocService;
+import xyz.fz.docdoc.util.BaseUtil;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @Transactional(rollbackFor = Exception.class)
@@ -36,6 +44,31 @@ public class DocServiceImpl implements DocService {
     private final ApiResponseExampleRepository apiResponseExampleRepository;
 
     private final CommonDao db;
+
+    private final String DEFAULT_MOCK_RESULT = "docdocNoMapping";
+
+    private final String SPLIT = "@_@";
+
+    @Value("${ip.url.cache}")
+    private boolean ipUrlCacheEnabled;
+
+    private LoadingCache<String, String> ipUrlCache = CacheBuilder.newBuilder()
+            .maximumSize(1000)
+            .refreshAfterWrite(10, TimeUnit.SECONDS)
+            .build(new CacheLoader<String, String>() {
+                @Override
+                @ParametersAreNonnullByDefault
+                public String load(String keyParam) {
+                    String[] keys = keyParam.split(SPLIT);
+                    if (keys.length == 2) {
+                        String ip = keys[0];
+                        String url = keys[1];
+                        return getIpUrlResponse(ip, url);
+                    } else {
+                        return DEFAULT_MOCK_RESULT;
+                    }
+                }
+            });
 
     @Autowired
     public DocServiceImpl(ProjectRepository projectRepository,
@@ -462,8 +495,28 @@ public class DocServiceImpl implements DocService {
     @Override
     @SuppressWarnings("unchecked")
     public JsonObject apiMock(JsonObject jsonObject) {
-        String mockResult = "docdocNoMapping";
+        String ip = jsonObject.getString("ip");
         String url = jsonObject.getString("url");
+        return Result.ofData(mockResult(ip, url));
+    }
+
+    private String mockResult(String ip, String url) {
+        String keyParam = ip + SPLIT + url;
+        String mockResult = DEFAULT_MOCK_RESULT;
+        if (ipUrlCacheEnabled) {
+            try {
+                mockResult = ipUrlCache.get(keyParam);
+            } catch (ExecutionException e) {
+                LOGGER.error(BaseUtil.getExceptionStackTrace(e));
+            }
+        } else {
+            mockResult = getIpUrlResponse(ip, url);
+        }
+        return mockResult;
+    }
+
+    private String getIpUrlResponse(String ip, String url) {
+        String mockResult = DEFAULT_MOCK_RESULT;
         Api sApi = new Api();
         sApi.setRequestUrl(url);
         sApi.setIsActivity(1);
@@ -475,6 +528,8 @@ public class DocServiceImpl implements DocService {
         Optional<Api> fApi = apiRepository.findOne(apiExample);
         if (fApi.isPresent()) {
             Api api = fApi.get();
+            JsonObject jsonObject = new JsonObject();
+            jsonObject.put("ip", ip);
             jsonObject.put("apiId", api.getId());
             JsonObject result = apiResponseExampleOne(jsonObject);
             Map<String, Object> dataMap = ((JsonObject) result.getValue("data")).getMap();
@@ -482,6 +537,6 @@ public class DocServiceImpl implements DocService {
                 mockResult = dataMap.get("response") != null ? dataMap.get("response").toString() : mockResult;
             }
         }
-        return Result.ofData(mockResult);
+        return mockResult;
     }
 }
