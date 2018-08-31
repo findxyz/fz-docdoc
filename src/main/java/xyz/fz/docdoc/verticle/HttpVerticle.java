@@ -72,7 +72,10 @@ public class HttpVerticle extends AbstractVerticle {
         SessionHandler sessionHandler = SessionHandler.create(sessionStore);
         sessionHandler.setCookieHttpOnlyFlag(true);
         sessionHandler.setSessionTimeout(60 * 60 * 24 * 30 * 1000L);
-        router.route().handler(sessionHandler);
+        router.route("/").handler(sessionHandler);
+        router.route("/doLogin").handler(sessionHandler);
+        router.route("/doLogout").handler(sessionHandler);
+        router.route("/docdoc*").handler(sessionHandler);
     }
 
     private void staticHandler(Router router) {
@@ -367,14 +370,8 @@ public class HttpVerticle extends AbstractVerticle {
 
     private void docdocMappingHandler(Router router) {
         router.route("/*").handler(routingContext -> {
-            EventBusUtil.mockBus(
-                    vertx,
-                    routingContext,
-                    ServiceVerticle.Address.DOC_API_MOCK,
-                    new JsonObject()
-                            .put("ip", IpAddressUtil.getIpAddress(routingContext.request()))
-                            .put("url", routingContext.request().path())
-            );
+            JsonObject jsonObject = new JsonObject().put("ip", IpAddressUtil.getIpAddress(routingContext.request())).put("url", routingContext.request().path());
+            EventBusUtil.mockBus(vertx, routingContext, ServiceVerticle.Address.DOC_API_MOCK, jsonObject);
         });
     }
 
