@@ -61,8 +61,7 @@ public class EventBusUtil {
         vertx.eventBus().send(address.toString(), paramJsonObject, asyncResult -> {
             String result;
             if (asyncResult.succeeded()) {
-                result = asyncResult.result().body().toString();
-                result = new JsonObject(result).getString("data");
+                result = new JsonObject(asyncResult.result().body().toString()).getString("data");
             } else {
                 result = Result.ofMessage(asyncResult.cause().getMessage()).toString();
             }
