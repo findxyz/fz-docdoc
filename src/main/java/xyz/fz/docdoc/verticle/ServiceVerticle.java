@@ -12,6 +12,8 @@ import xyz.fz.docdoc.service.DocService;
 import xyz.fz.docdoc.service.UserService;
 import xyz.fz.docdoc.util.BaseUtil;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.UUID;
 
 public class ServiceVerticle extends AbstractVerticle {
@@ -25,38 +27,44 @@ public class ServiceVerticle extends AbstractVerticle {
         /**
          * EventBus 通讯地址
          */
-        USER_ADD("USER_ADD"),
-        USER_LOGIN("USER_LOGIN"),
-        USER_LIST("USER_LIST"),
-        USER_DEL("USER_DEL"),
-        USER_ADMIN_UPDATE("USER_ADMIN_UPDATE"),
+        USER_ADD("USER_ADD", UserService.class, "add"),
+        USER_LOGIN("USER_LOGIN", UserService.class, "login"),
+        USER_LIST("USER_LIST", UserService.class, "list"),
+        USER_DEL("USER_DEL", UserService.class, "del"),
+        USER_ADMIN_UPDATE("USER_ADMIN_UPDATE", UserService.class, "adminUpdate"),
 
-        DOC_PROJECT_ADD("DOC_PROJECT_ADD"),
-        DOC_PROJECT_EDIT("DOC_PROJECT_EDIT"),
-        DOC_PROJECT_DEL("DOC_PROJECT_DEL"),
-        DOC_PROJECT_LIST("DOC_PROJECT_LIST"),
-        DOC_API_ADD("DOC_API_ADD"),
-        DOC_API_EXAMPLE_UPDATE("DOC_API_EXAMPLE_UPDATE"),
-        DOC_API_LIST("DOC_API_LIST"),
-        DOC_API_EDIT("DOC_API_EDIT"),
-        DOC_API_DEL("DOC_API_DEL"),
-        DOC_API_STATUS("DOC_API_STATUS"),
-        DOC_API_FIELD_ADD("DOC_API_FIELD_ADD"),
-        DOC_API_FIELD_DEL("DOC_API_FIELD_DEL"),
-        DOC_API_FIELD_ORDER("DOC_API_FIELD_ORDER"),
-        DOC_API_FIELD_LIST("DOC_API_FIELD_LIST"),
-        DOC_API_LOG_ADD("DOC_API_LOG_ADD"),
-        DOC_API_LOG_DEL("DOC_API_LOG_DEL"),
-        DOC_API_LOG_LIST("DOC_API_LOG_LIST"),
-        DOC_API_RESPONSE_EXAMPLE_ADD("DOC_API_RESPONSE_EXAMPLE_ADD"),
-        DOC_API_RESPONSE_EXAMPLE_DEL("DOC_API_RESPONSE_EXAMPLE_DEL"),
-        DOC_API_RESPONSE_EXAMPLE_ONE("DOC_API_RESPONSE_EXAMPLE_ONE"),
-        DOC_API_MOCK("DOC_API_MOCK");
+        DOC_PROJECT_ADD("DOC_PROJECT_ADD", DocService.class, "projectAdd"),
+        DOC_PROJECT_EDIT("DOC_PROJECT_EDIT", DocService.class, "projectEdit"),
+        DOC_PROJECT_DEL("DOC_PROJECT_DEL", DocService.class, "projectDel"),
+        DOC_PROJECT_LIST("DOC_PROJECT_LIST", DocService.class, "projectList"),
+        DOC_API_ADD("DOC_API_ADD", DocService.class, "apiAdd"),
+        DOC_API_EXAMPLE_UPDATE("DOC_API_EXAMPLE_UPDATE", DocService.class, "apiExampleUpdate"),
+        DOC_API_LIST("DOC_API_LIST", DocService.class, "apiList"),
+        DOC_API_EDIT("DOC_API_EDIT", DocService.class, "apiEdit"),
+        DOC_API_DEL("DOC_API_DEL", DocService.class, "apiDel"),
+        DOC_API_STATUS("DOC_API_STATUS", DocService.class, "apiStatus"),
+        DOC_API_FIELD_ADD("DOC_API_FIELD_ADD", DocService.class, "apiFieldAdd"),
+        DOC_API_FIELD_DEL("DOC_API_FIELD_DEL", DocService.class, "apiFieldDel"),
+        DOC_API_FIELD_ORDER("DOC_API_FIELD_ORDER", DocService.class, "apiFieldOrder"),
+        DOC_API_FIELD_LIST("DOC_API_FIELD_LIST", DocService.class, "apiFieldList"),
+        DOC_API_LOG_ADD("DOC_API_LOG_ADD", DocService.class, "apiLogAdd"),
+        DOC_API_LOG_DEL("DOC_API_LOG_DEL", DocService.class, "apiLogDel"),
+        DOC_API_LOG_LIST("DOC_API_LOG_LIST", DocService.class, "apiLogList"),
+        DOC_API_RESPONSE_EXAMPLE_ADD("DOC_API_RESPONSE_EXAMPLE_ADD", DocService.class, "apiResponseExampleAdd"),
+        DOC_API_RESPONSE_EXAMPLE_DEL("DOC_API_RESPONSE_EXAMPLE_DEL", DocService.class, "apiResponseExampleDel"),
+        DOC_API_RESPONSE_EXAMPLE_ONE("DOC_API_RESPONSE_EXAMPLE_ONE", DocService.class, "apiResponseExampleOne"),
+        DOC_API_MOCK("DOC_API_MOCK", DocService.class, "apiMock");
 
         private String address;
 
-        Address(String address) {
+        private Class<?> clazz;
+
+        private String method;
+
+        Address(String address, Class<?> clazz, String method) {
             this.address = address;
+            this.clazz = clazz;
+            this.method = method;
         }
 
         @Override
@@ -65,8 +73,10 @@ public class ServiceVerticle extends AbstractVerticle {
         }
     }
 
+    private ServiceReply serviceReply;
+
     public ServiceVerticle(ApplicationContext context) {
-        ReplyFactory.serviceInit(context);
+        serviceReply = new ServiceReply(context);
         instanceId = UUID.randomUUID().toString();
     }
 
@@ -82,7 +92,7 @@ public class ServiceVerticle extends AbstractVerticle {
         vertx.eventBus().consumer(address.toString(), msg -> {
             try {
                 LOGGER.debug("verticle instanceId: {}, consumer address: {}", instanceId, address.toString());
-                JsonObject replyJsonObject = ReplyFactory.reply(address, (JsonObject) msg.body());
+                JsonObject replyJsonObject = serviceReply.reply(address, (JsonObject) msg.body());
                 String replyJsonString = replyJsonObject != null ? replyJsonObject.toString() : Result.ofSuccess().toString();
                 msg.reply(replyJsonString);
             } catch (Exception e) {
@@ -92,77 +102,21 @@ public class ServiceVerticle extends AbstractVerticle {
         });
     }
 
-    private static class ReplyFactory {
+    private class ServiceReply {
 
-        private static volatile boolean init = false;
+        private ApplicationContext springContext;
 
-        private static UserService userService;
-        private static DocService docService;
-
-        private static void serviceInit(ApplicationContext context) {
-            if (!init) {
-                init = true;
-                userService = context.getBean("userServiceImpl", UserService.class);
-                docService = context.getBean("docServiceImpl", DocService.class);
-            }
+        ServiceReply(ApplicationContext springContext) {
+            this.springContext = springContext;
         }
 
-        private static JsonObject reply(Address address, JsonObject jsonObject) {
-            switch (address) {
-                case USER_ADD:
-                    return userService.add(jsonObject);
-                case USER_LOGIN:
-                    return userService.login(jsonObject);
-                case USER_LIST:
-                    return userService.list(jsonObject);
-                case USER_DEL:
-                    return userService.del(jsonObject);
-                case USER_ADMIN_UPDATE:
-                    return userService.adminUpdate(jsonObject);
-                case DOC_PROJECT_ADD:
-                    return docService.projectAdd(jsonObject);
-                case DOC_PROJECT_EDIT:
-                    return docService.projectEdit(jsonObject);
-                case DOC_PROJECT_DEL:
-                    return docService.projectDel(jsonObject);
-                case DOC_PROJECT_LIST:
-                    return docService.projectList(jsonObject);
-                case DOC_API_ADD:
-                    return docService.apiAdd(jsonObject);
-                case DOC_API_EXAMPLE_UPDATE:
-                    return docService.apiExampleUpdate(jsonObject);
-                case DOC_API_LIST:
-                    return docService.apiList(jsonObject);
-                case DOC_API_EDIT:
-                    return docService.apiEdit(jsonObject);
-                case DOC_API_DEL:
-                    return docService.apiDel(jsonObject);
-                case DOC_API_STATUS:
-                    return docService.apiStatus(jsonObject);
-                case DOC_API_FIELD_ADD:
-                    return docService.apiFieldAdd(jsonObject);
-                case DOC_API_FIELD_DEL:
-                    return docService.apiFieldDel(jsonObject);
-                case DOC_API_FIELD_ORDER:
-                    return docService.apiFieldOrder(jsonObject);
-                case DOC_API_FIELD_LIST:
-                    return docService.apiFieldList(jsonObject);
-                case DOC_API_LOG_ADD:
-                    return docService.apiLogAdd(jsonObject);
-                case DOC_API_LOG_DEL:
-                    return docService.apiLogDel(jsonObject);
-                case DOC_API_LOG_LIST:
-                    return docService.apiLogList(jsonObject);
-                case DOC_API_RESPONSE_EXAMPLE_ADD:
-                    return docService.apiResponseExampleAdd(jsonObject);
-                case DOC_API_RESPONSE_EXAMPLE_DEL:
-                    return docService.apiResponseExampleDel(jsonObject);
-                case DOC_API_RESPONSE_EXAMPLE_ONE:
-                    return docService.apiResponseExampleOne(jsonObject);
-                case DOC_API_MOCK:
-                    return docService.apiMock(jsonObject);
-                default:
-                    throw new RuntimeException("EventBus address not found");
+        private JsonObject reply(Address address, JsonObject jsonObject) {
+            try {
+                Object replyService = springContext.getBean(address.clazz);
+                Method replyMethod = address.clazz.getMethod(address.method, JsonObject.class);
+                return (JsonObject) replyMethod.invoke(replyService, jsonObject);
+            } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+                throw new RuntimeException(e);
             }
         }
     }

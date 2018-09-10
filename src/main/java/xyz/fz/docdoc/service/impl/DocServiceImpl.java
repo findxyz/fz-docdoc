@@ -334,10 +334,10 @@ public class DocServiceImpl implements DocService {
             List<ApiField> list;
             switch (type) {
                 case "up":
-                    list = apiFieldRepository.findByVersionLessThanAndActionTypeAndIsActivityOrderByVersionDesc(curVersion, curApiField.getActionType(), 1);
+                    list = apiFieldRepository.findByVersionLessThanAndApiIdAndActionTypeAndIsActivityOrderByVersionDesc(curVersion, curApiField.getApiId(), curApiField.getActionType(), 1);
                     break;
                 case "down":
-                    list = apiFieldRepository.findByVersionGreaterThanAndActionTypeAndIsActivityOrderByVersionAsc(curVersion, curApiField.getActionType(), 1);
+                    list = apiFieldRepository.findByVersionGreaterThanAndApiIdAndActionTypeAndIsActivityOrderByVersionAsc(curVersion, curApiField.getApiId(), curApiField.getActionType(), 1);
                     break;
                 default:
                     throw new RuntimeException("调整类型错误");

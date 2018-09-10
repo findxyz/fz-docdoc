@@ -6,7 +6,7 @@ import xyz.fz.docdoc.entity.ApiField;
 import java.util.List;
 
 public interface ApiFieldRepository extends JpaRepository<ApiField, Long> {
-    List<ApiField> findByVersionLessThanAndActionTypeAndIsActivityOrderByVersionDesc(Long version, String actionType, Integer isActivity);
+    List<ApiField> findByVersionLessThanAndApiIdAndActionTypeAndIsActivityOrderByVersionDesc(Long version, Long apiId, String actionType, Integer isActivity);
 
-    List<ApiField> findByVersionGreaterThanAndActionTypeAndIsActivityOrderByVersionAsc(Long version, String actionType, Integer isActivity);
+    List<ApiField> findByVersionGreaterThanAndApiIdAndActionTypeAndIsActivityOrderByVersionAsc(Long version, Long apiId, String actionType, Integer isActivity);
 }
