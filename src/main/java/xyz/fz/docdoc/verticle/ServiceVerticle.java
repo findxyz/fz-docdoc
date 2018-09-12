@@ -106,7 +106,7 @@ public class ServiceVerticle extends AbstractVerticle {
 
         private ApplicationContext springContext;
 
-        ServiceReply(ApplicationContext springContext) {
+        private ServiceReply(ApplicationContext springContext) {
             this.springContext = springContext;
         }
 

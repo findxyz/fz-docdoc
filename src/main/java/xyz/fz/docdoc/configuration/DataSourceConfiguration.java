@@ -17,6 +17,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import javax.sql.DataSource;
+import java.util.Objects;
 import java.util.Properties;
 
 @Configuration
@@ -35,10 +36,10 @@ public class DataSourceConfiguration {
     @Bean
     public DataSource dataSource() {
         HikariConfig hikariConfig = new HikariConfig();
-        hikariConfig.setDriverClassName(env.getProperty("datasource.driver-class-name"));
-        hikariConfig.setJdbcUrl(env.getProperty("datasource.url"));
-        hikariConfig.setUsername(env.getProperty("datasource.username"));
-        hikariConfig.setPassword(env.getProperty("datasource.password"));
+        hikariConfig.setDriverClassName(Objects.requireNonNull(env.getProperty("datasource.driver-class-name")));
+        hikariConfig.setJdbcUrl(Objects.requireNonNull(env.getProperty("datasource.url")));
+        hikariConfig.setUsername(Objects.requireNonNull(env.getProperty("datasource.username")));
+        hikariConfig.setPassword(Objects.requireNonNull(env.getProperty("datasource.password")));
         hikariConfig.setMaximumPoolSize(30);
         hikariConfig.setConnectionTestQuery("SELECT 1");
         hikariConfig.setPoolName("springHikariCP");
@@ -56,10 +57,10 @@ public class DataSourceConfiguration {
         factory.setJpaVendorAdapter(hibernateJpaVendorAdapter);
         factory.setPackagesToScan("xyz.fz.docdoc.entity");
         Properties jpaProperties = new Properties();
-        jpaProperties.put("hibernate.dialect", env.getProperty("hibernate.dialect"));
-        jpaProperties.put("hibernate.naming.physical-strategy", env.getProperty("hibernate.naming.physical-strategy"));
-        jpaProperties.put("hibernate.hbm2ddl.auto", env.getProperty("hibernate.hbm2ddl.auto"));
-        jpaProperties.put("hibernate.show_sql", env.getProperty("hibernate.show_sql"));
+        jpaProperties.put("hibernate.dialect", Objects.requireNonNull(env.getProperty("hibernate.dialect")));
+        jpaProperties.put("hibernate.naming.physical-strategy", Objects.requireNonNull(env.getProperty("hibernate.naming.physical-strategy")));
+        jpaProperties.put("hibernate.hbm2ddl.auto", Objects.requireNonNull(env.getProperty("hibernate.hbm2ddl.auto")));
+        jpaProperties.put("hibernate.show_sql", Objects.requireNonNull(env.getProperty("hibernate.show_sql")));
         factory.setJpaProperties(jpaProperties);
         return factory;
     }
@@ -67,7 +68,7 @@ public class DataSourceConfiguration {
     @Bean
     @Autowired
     public PlatformTransactionManager transactionManager(LocalContainerEntityManagerFactoryBean entityManagerFactory) {
-        return new JpaTransactionManager(entityManagerFactory.getObject());
+        return new JpaTransactionManager(Objects.requireNonNull(entityManagerFactory.getObject()));
     }
 
     @Bean

@@ -12,6 +12,8 @@ import xyz.fz.docdoc.util.ThreadUtil;
 import xyz.fz.docdoc.verticle.HttpVerticle;
 import xyz.fz.docdoc.verticle.ServiceVerticle;
 
+import java.util.Objects;
+
 public class Application {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Application.class);
@@ -31,16 +33,19 @@ public class Application {
 
         /* deploy verticles */
         final Vertx vertx = Vertx.vertx();
+
+        // business verticles
+        int cpuCores = Runtime.getRuntime().availableProcessors();
         DeploymentOptions workerDeploymentOptions = new DeploymentOptions();
         workerDeploymentOptions.setWorker(true);
-        workerDeploymentOptions.setWorkerPoolSize(10);
+        workerDeploymentOptions.setWorkerPoolSize(cpuCores * 4);
+        for (int i = 0; i < cpuCores * 2; i++) {
+            // can't use workerDeploymentOptions.setInstances(cpuCores * 2) because of new Object not reflect Object
+            vertx.deployVerticle(new ServiceVerticle(context), workerDeploymentOptions);
+        }
 
-        // one ServiceVerticle instance
-        vertx.deployVerticle(new ServiceVerticle(context), workerDeploymentOptions);
-        // another ServiceVerticle instance
-        vertx.deployVerticle(new ServiceVerticle(context), workerDeploymentOptions);
-
-        int serverPort = Integer.parseInt(context.getEnvironment().getProperty("server.port"));
+        // http verticle
+        int serverPort = Integer.parseInt(Objects.requireNonNull(context.getEnvironment().getProperty("server.port")));
         vertx.deployVerticle(new HttpVerticle(serverPort));
 
         LOGGER.info("Deployment done. Server is running at port: {}", serverPort);
