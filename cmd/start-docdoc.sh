@@ -16,6 +16,7 @@ java -jar \
 -XX:ErrorFile=/root/gcLog/hs_err_pid%p.log \
 -XX:HeapDumpPath=/root/gcLog \
 -XX:+HeapDumpOnOutOfMemoryError \
+-Djava.security.egd=file:/dev/./urandom \
 -Dlogback.configurationFile=/root/docdoc/logback.xml \
 -Dip.url.cache=true \
 docdoc-1.0-fat.jar > /dev/null 2>&1 \
