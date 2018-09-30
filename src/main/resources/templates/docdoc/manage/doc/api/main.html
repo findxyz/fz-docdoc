@@ -9,6 +9,7 @@
         .layui-table, .layui-table-view {
             margin: 0;
         }
+
         .layui-form-item {
             margin: 5px 0;
             clear: both;
@@ -253,6 +254,28 @@
             });
         });
 
+        function editProjectName() {
+            var $projectName = $("#projectName");
+            if ($projectName.val()) {
+                $.ajax("/docdoc/manage/api/doc/project/edit", {
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        id: projectId,
+                        name: $projectName.val()
+                    }),
+                    dataType: 'json',
+                    success: function (json) {
+                        if (json.success) {
+                            window.location = '/docdoc/manage/html/doc/main';
+                        } else {
+                            layer.open({time: 5000, content: '<div>' + json.message + '</div>'});
+                        }
+                    }
+                });
+            }
+        }
+
         $("#editBtn").click(function () {
             layer.open({
                 title: '修改项目名',
@@ -263,32 +286,19 @@
                     layer.closeAll();
                 },
                 btn: ['更新', '关闭'],
-                yes: function () {
-                    var $projectName = $("#projectName");
-                    if ($projectName.val()) {
-                        $.ajax("/docdoc/manage/api/doc/project/edit", {
-                            type: 'POST',
-                            contentType: 'application/json',
-                            data: JSON.stringify({
-                                id: projectId,
-                                name: $projectName.val()
-                            }),
-                            dataType: 'json',
-                            success: function (json) {
-                                if (json.success) {
-                                    window.location = '/docdoc/manage/html/doc/main';
-                                } else {
-                                    layer.open({time: 5000, content: '<div>' + json.message + '</div>'});
-                                }
-                            }
-                        });
-                    }
-                },
+                yes: editProjectName,
                 close: function () {
                     layer.closeAll();
                 },
                 success: function (layero, index) {
-                    $("#projectName").focus();
+                    var $projectName = $("#projectName");
+                    $projectName.focus();
+                    $projectName.unbind("keypress").bind("keypress", function (event) {
+                        switch (event.keyCode) {
+                            case 13:
+                                editProjectName();
+                        }
+                    });
                 }
             });
         });

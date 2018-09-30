@@ -382,6 +382,47 @@
         });
 
         // ======================== field table ========================
+        function fieldUpdate(id) {
+            var editActionType = $("input[name='editActionType']:checked").val();
+            var editRequired = document.getElementById("editRequired").checked ? 1 : 0;
+            var editMeaning = $("#editMeaning").val();
+            var editParamType = $("#editParamType").val();
+            var editFieldName = $("#editFieldName").val();
+            if (editMeaning && editParamType && editFieldName) {
+                layer.closeAll();
+                $.ajax("/docdoc/manage/api/doc/api/field/add", {
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        id: id,
+                        actionType: editActionType,
+                        required: editRequired,
+                        meaning: editMeaning,
+                        paramType: editParamType,
+                        name: editFieldName
+                    }),
+                    dataType: 'json',
+                    success: function (json) {
+                        if (json.success) {
+                            apiRequestFieldTableReload();
+                            apiResponseFieldTableReload();
+                        } else {
+                            layer.open({time: 5000, content: '<div>' + json.message + '</div>'});
+                        }
+                    }
+                });
+            }
+        }
+
+        function enterFieldUpdate($element, id) {
+            $element.unbind("keypress").bind("keypress", function (event) {
+                switch (event.keyCode) {
+                    case 13:
+                        fieldUpdate(id);
+                }
+            });
+        }
+
         function fieldTool(obj) {
             var data = obj.data;
             if (obj.event === 'del') {
@@ -411,36 +452,8 @@
                     , area: ['450px', '400px']
                     , content: $("#fieldUpdateTemplate").html()
                     , btn: ['更新', '关闭']
-                    , yes: function (index, layero) {
-                        var editActionType = $("input[name='editActionType']:checked").val();
-                        var editRequired = document.getElementById("editRequired").checked ? 1 : 0;
-                        var editMeaning = $("#editMeaning").val();
-                        var editParamType = $("#editParamType").val();
-                        var editFieldName = $("#editFieldName").val();
-                        if (editMeaning && editParamType && editFieldName) {
-                            layer.close(index);
-                            $.ajax("/docdoc/manage/api/doc/api/field/add", {
-                                type: 'POST',
-                                contentType: 'application/json',
-                                data: JSON.stringify({
-                                    id: data.id,
-                                    actionType: editActionType,
-                                    required: editRequired,
-                                    meaning: editMeaning,
-                                    paramType: editParamType,
-                                    name: editFieldName
-                                }),
-                                dataType: 'json',
-                                success: function (json) {
-                                    if (json.success) {
-                                        apiRequestFieldTableReload();
-                                        apiResponseFieldTableReload();
-                                    } else {
-                                        layer.open({time: 5000, content: '<div>' + json.message + '</div>'});
-                                    }
-                                }
-                            });
-                        }
+                    , yes: function () {
+                        fieldUpdate(data.id);
                     }
                     , close: function (index, layero) {
                         layer.close(index);
@@ -452,10 +465,16 @@
                             }
                         });
                         $("#editRequired").prop("checked", !!data.required);
-                        $("#editFieldName").val(data.name);
-                        $("#editParamType").val(data.paramType);
-                        $("#editMeaning").val(data.meaning);
+                        var $editFieldName = $("#editFieldName");
+                        $editFieldName.val(data.name);
+                        var $editParamType = $("#editParamType");
+                        $editParamType.val(data.paramType);
+                        var $editMeaning = $("#editMeaning");
+                        $editMeaning.val(data.meaning);
                         form.render();
+                        enterFieldUpdate($editFieldName, data.id);
+                        enterFieldUpdate($editParamType, data.id);
+                        enterFieldUpdate($editMeaning, data.id);
                     }
                 });
             } else if (obj.event === 'up') {

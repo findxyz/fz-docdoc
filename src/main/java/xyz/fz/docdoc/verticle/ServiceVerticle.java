@@ -115,8 +115,10 @@ public class ServiceVerticle extends AbstractVerticle {
                 Object replyService = springContext.getBean(address.clazz);
                 Method replyMethod = address.clazz.getMethod(address.method, JsonObject.class);
                 return (JsonObject) replyMethod.invoke(replyService, jsonObject);
-            } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-                throw new RuntimeException(e);
+            } catch (InvocationTargetException e) {
+                throw new RuntimeException(e.getTargetException().getMessage());
+            } catch (NoSuchMethodException | IllegalAccessException ex) {
+                throw new RuntimeException(ex);
             }
         }
     }

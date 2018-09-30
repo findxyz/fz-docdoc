@@ -145,38 +145,47 @@
             });
         };
 
+        function projectAdd() {
+            var name = $("#name").val();
+            if (name) {
+                layer.closeAll();
+                $.ajax("/docdoc/manage/api/doc/project/add", {
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        name: name
+                    }),
+                    dataType: 'json',
+                    success: function (json) {
+                        if (json.success) {
+                            loadGrid();
+                        } else {
+                            layer.open({time: 5000, content: '<div>' + json.message + '</div>'});
+                        }
+                    }
+                });
+            }
+        }
+
         $("#addBtn").click(function () {
             layer.open({
                 title: '新建项目文档'
                 , area: '500px'
                 , content: $("#newProjectTemplate").html()
                 , btn: ['确定', '关闭']
-                , yes: function (index, layero) {
-                    var name = $("#name").val();
-                    if (name) {
-                        layer.close(index);
-                        $.ajax("/docdoc/manage/api/doc/project/add", {
-                            type: 'POST',
-                            contentType: 'application/json',
-                            data: JSON.stringify({
-                                name: name
-                            }),
-                            dataType: 'json',
-                            success: function (json) {
-                                if (json.success) {
-                                    loadGrid();
-                                } else {
-                                    layer.open({time: 5000, content: '<div>' + json.message + '</div>'});
-                                }
-                            }
-                        });
-                    }
-                }
+                , yes: projectAdd
                 , close: function (index, layero) {
                     layer.close(index);
                 }
                 , success: function (layero, index) {
-                    $("#name").focus();
+                    var $name = $("#name");
+                    $name.focus();
+                    $name.unbind("keypress").bind("keypress", function (event) {
+                        switch (event.keyCode) {
+                            case 13:
+                                projectAdd();
+                        }
+                    });
                 }
             });
         });

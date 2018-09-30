@@ -72,44 +72,76 @@
             }
         });
 
+        function userAdd() {
+            var userName = $("#userName").val();
+            var passWord = $("#passWord").val();
+            if (userName && passWord) {
+                layer.closeAll();
+                $.ajax("/docdoc/manage/api/user/add", {
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        userName: userName,
+                        passWord: passWord
+                    }),
+                    dataType: 'json',
+                    success: function (json) {
+                        if (json.success) {
+                            layer.msg('新增成功');
+                            table.reload('userList', {});
+                        } else {
+                            layer.open({time: 5000, content: '<div>' + json.message + '</div>'});
+                        }
+                    }
+                });
+            }
+        }
+
         $("#addBtn").bind("click", function () {
             layer.open({
                 title: '新增用户'
                 , area: ['400px', '250px']
                 , content: $("#userAddTemplate").html()
                 , btn: ['保存', '关闭']
-                , yes: function (index, layero) {
-                    var userName = $("#userName").val();
-                    var passWord = $("#passWord").val();
-                    if (userName && passWord) {
-                        layer.close(index);
-                        $.ajax("/docdoc/manage/api/user/add", {
-                            type: 'POST',
-                            contentType: 'application/json',
-                            data: JSON.stringify({
-                                userName: userName,
-                                passWord: passWord
-                            }),
-                            dataType: 'json',
-                            success: function (json) {
-                                if (json.success) {
-                                    layer.msg('新增成功');
-                                    table.reload('userList', {});
-                                } else {
-                                    layer.open({time: 5000, content: '<div>' + json.message + '</div>'});
-                                }
-                            }
-                        });
-                    }
-                }
+                , yes: userAdd
                 , close: function (index, layero) {
                     layer.close(index);
                 }
                 , success: function (layero, index) {
                     $("#userName").focus();
+                    $("#passWord").unbind("keypress").bind("keypress", function (event) {
+                        switch (event.keyCode) {
+                            case 13:
+                                userAdd();
+                        }
+                    });
                 }
             });
         });
+
+        function adminUpdate() {
+            var oldPass = $("#adminOldPassWord").val();
+            var newPass = $("#adminNewPassWord").val();
+            if (oldPass && newPass) {
+                layer.closeAll();
+                $.ajax("/docdoc/manage/api/user/admin/update", {
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        adminOldPassWord: oldPass,
+                        adminNewPassWord: newPass
+                    }),
+                    dataType: 'json',
+                    success: function (json) {
+                        if (json.success) {
+                            layer.msg('更新成功');
+                        } else {
+                            layer.open({time: 5000, content: '<div>' + json.message + '</div>'});
+                        }
+                    }
+                });
+            }
+        }
 
         $("#adminUpdateBtn").click(function () {
             layer.open({
@@ -117,34 +149,18 @@
                 , area: '500px'
                 , content: $("#adminUpdateTemplate").html()
                 , btn: ['更新', '关闭']
-                , yes: function (index, layero) {
-                    var oldPass = $("#adminOldPassWord").val();
-                    var newPass = $("#adminNewPassWord").val();
-                    if (oldPass && newPass) {
-                        layer.close(index);
-                        $.ajax("/docdoc/manage/api/user/admin/update", {
-                            type: 'POST',
-                            contentType: 'application/json',
-                            data: JSON.stringify({
-                                adminOldPassWord: oldPass,
-                                adminNewPassWord: newPass
-                            }),
-                            dataType: 'json',
-                            success: function (json) {
-                                if (json.success) {
-                                    layer.msg('更新成功');
-                                } else {
-                                    layer.open({time: 5000, content: '<div>' + json.message + '</div>'});
-                                }
-                            }
-                        });
-                    }
-                }
+                , yes: adminUpdate
                 , close: function (index, layero) {
                     layer.close(index);
                 }
                 , success: function (layero, index) {
                     $("#adminOldPassWord").focus();
+                    $("#adminNewPassWord").unbind("keypress").bind("keypress", function (event) {
+                        switch (event.keyCode) {
+                            case 13:
+                                adminUpdate();
+                        }
+                    });
                 }
             });
         });
