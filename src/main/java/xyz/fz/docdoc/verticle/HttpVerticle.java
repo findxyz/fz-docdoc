@@ -97,7 +97,10 @@ public class HttpVerticle extends AbstractVerticle {
         if (loginUserMap.containsKey(userName)) {
             sessionStore.get(loginUserMap.get(userName), sessionAsyncResult -> {
                 if (sessionAsyncResult.succeeded()) {
-                    sessionAsyncResult.result().remove(CUR_USER);
+                    Session session = sessionAsyncResult.result();
+                    if (session != null) {
+                        session.remove(CUR_USER);
+                    }
                     loginUserMap.remove(userName);
                 }
             });
