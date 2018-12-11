@@ -61,7 +61,7 @@ public class HttpVerticle extends AbstractVerticle {
         docdocMappingHandler(router);
         failureHandler(router);
 
-        server.requestHandler(router::accept);
+        server.requestHandler(router);
 
         server.listen(port);
     }
