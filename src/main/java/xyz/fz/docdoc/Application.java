@@ -31,6 +31,8 @@ public class Application {
         /* init h2database */
         ThreadUtil.execute(new H2InitRunner(context));
 
+        System.setProperty("vertx.disableFileCaching", Objects.requireNonNull(context.getEnvironment().getProperty("vertx.disableFileCaching")));
+
         /* deploy verticles */
         final Vertx vertx = Vertx.vertx();
 

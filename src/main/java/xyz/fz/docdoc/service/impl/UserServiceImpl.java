@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import xyz.fz.docdoc.entity.User;
@@ -34,18 +35,13 @@ public class UserServiceImpl implements UserService {
     public JsonObject add(JsonObject jsonObject) {
         String userName = jsonObject.getString("userName");
         String passWord = jsonObject.getString("passWord");
-        User sUser = new User();
-        sUser.setUserName(userName);
-        ExampleMatcher matcher = ExampleMatcher.matching()
-                .withMatcher("userName", ExampleMatcher.GenericPropertyMatchers.exact());
-        Example<User> userExample = Example.of(sUser, matcher);
-        Optional<User> fUser = userRepository.findOne(userExample);
+        Optional<User> fUser = findUser(userName);
         if (fUser.isPresent()) {
             throw new RuntimeException("当前用户名已存在");
         } else {
             User user = new User();
             user.setUserName(userName);
-            user.setPassWord(passWord);
+            user.setPassWord(BCrypt.hashpw(passWord, BCrypt.gensalt()));
             userRepository.save(user);
             return Result.ofSuccess();
         }
@@ -55,15 +51,11 @@ public class UserServiceImpl implements UserService {
     public JsonObject login(JsonObject jsonObject) {
         String userName = jsonObject.getString("userName");
         String passWord = jsonObject.getString("passWord");
-        User sUser = new User();
-        sUser.setUserName(userName);
-        sUser.setPassWord(passWord);
-        ExampleMatcher matcher = ExampleMatcher.matching()
-                .withMatcher("userName", ExampleMatcher.GenericPropertyMatchers.exact())
-                .withMatcher("passWord", ExampleMatcher.GenericPropertyMatchers.exact());
-        Example<User> userExample = Example.of(sUser, matcher);
-        Optional<User> fUser = userRepository.findOne(userExample);
+        Optional<User> fUser = findUser(userName);
         if (!fUser.isPresent()) {
+            throw new RuntimeException("账号密码错误");
+        }
+        if (!BCrypt.checkpw(passWord, fUser.get().getPassWord())) {
             throw new RuntimeException("账号密码错误");
         }
         User user = fUser.get();
@@ -75,12 +67,7 @@ public class UserServiceImpl implements UserService {
         LOGGER.debug("user list params: {}", jsonObject.toString());
         Sort sort = new Sort(Sort.Direction.ASC, "id");
         List<User> list = userRepository.findByUserNameNot("admin", sort);
-        JsonObject result = new JsonObject();
-        result.put("code", 0);
-        result.put("msg", "");
-        result.put("data", list);
-        result.put("count", list.size());
-        return result;
+        return Result.ofList(list);
     }
 
     @Override
@@ -99,21 +86,21 @@ public class UserServiceImpl implements UserService {
     public JsonObject adminUpdate(JsonObject jsonObject) {
         String adminOldPassWord = jsonObject.getString("adminOldPassWord");
         String adminNewPassWord = jsonObject.getString("adminNewPassWord");
-        User sUser = new User();
-        sUser.setUserName("admin");
-        sUser.setPassWord(adminOldPassWord);
-        ExampleMatcher exampleMatcher = ExampleMatcher.matching()
-                .withMatcher("userName", ExampleMatcher.GenericPropertyMatchers.exact())
-                .withMatcher("passWord", ExampleMatcher.GenericPropertyMatchers.exact());
-        Example<User> userExample = Example.of(sUser, exampleMatcher);
-        Optional<User> fUser = userRepository.findOne(userExample);
-        if (fUser.isPresent()) {
+        Optional<User> fUser = findUser("admin");
+        if (fUser.isPresent() && BCrypt.checkpw(adminOldPassWord, fUser.get().getPassWord())) {
             User user = fUser.get();
-            user.setPassWord(adminNewPassWord);
+            user.setPassWord(BCrypt.hashpw(adminNewPassWord, BCrypt.gensalt()));
             userRepository.save(user);
             return Result.ofSuccess();
         } else {
             throw new RuntimeException("原始密码不正确");
         }
+    }
+
+    private Optional<User> findUser(String userName) {
+        User sUser = new User();
+        sUser.setUserName(userName);
+        Example<User> userExample = Example.of(sUser, ExampleMatcher.matching());
+        return userRepository.findOne(userExample);
     }
 }

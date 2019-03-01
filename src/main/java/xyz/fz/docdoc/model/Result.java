@@ -3,6 +3,8 @@ package xyz.fz.docdoc.model;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.vertx.core.json.JsonObject;
 
+import java.util.List;
+
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Result {
 
@@ -39,6 +41,15 @@ public class Result {
         result.put("success", false);
         result.put("redirect", redirect);
         result.put("message", "会话已过期，请重新登录");
+        return result;
+    }
+
+    public static JsonObject ofList(List list) {
+        JsonObject result = new JsonObject();
+        result.put("code", 0);
+        result.put("msg", "");
+        result.put("data", list);
+        result.put("count", list.size());
         return result;
     }
 

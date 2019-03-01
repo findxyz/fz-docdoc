@@ -15,7 +15,7 @@
         }
 
         .layui-input {
-            width: 500px;
+            width: 620px;
         }
 
         body {
@@ -31,30 +31,50 @@
     <div class="layui-form-item">
         <label class="layui-form-label">请求内容类型</label>
         <div class="layui-input-block">
-            <input type="radio" name="contentType" value="application/json" title="application/json" checked=""/>
-            <input type="radio" name="contentType" value="application/xml" title="application/xml"/>
-            <input type="radio" name="contentType" value="x-www-form-urlencoded" title="x-www-form-urlencoded"/>
-            <input type="radio" name="contentType" value="multipart/form-data" title="multipart/form-data"/>
+            <input type="text" id="contentType" name="contentType" required="required" lay-verify="required"
+                   placeholder="请求内容类型"
+                   autocomplete="off"
+                   class="layui-input"/>
+            <div class="layui-btn-group">
+                <button type="button" class="contentType layui-btn layui-btn-normal">application/json</button>
+                <button type="button" class="contentType layui-btn layui-btn-normal">application/xml</button>
+                <button type="button" class="contentType layui-btn layui-btn-normal">x-www-form-urlencoded</button>
+                <button type="button" class="contentType layui-btn layui-btn-normal">multipart/form-data</button>
+            </div>
         </div>
     </div>
     <div class="layui-form-item">
         <label class="layui-form-label">请求方法</label>
         <div class="layui-input-block">
-            <input type="radio" name="requestMethod" value="post" title="post" checked=""/>
-            <input type="radio" name="requestMethod" value="get" title="get"/>
+            <input type="text" id="requestMethod" name="requestMethod" required="required" lay-verify="required"
+                   placeholder="请求方法"
+                   autocomplete="off"
+                   class="layui-input"/>
+            <div class="layui-btn-group">
+                <button type="button" class="requestMethod layui-btn layui-btn-normal">post</button>
+                <button type="button" class="requestMethod layui-btn layui-btn-normal">get</button>
+                <button type="button" class="requestMethod layui-btn layui-btn-normal">put</button>
+                <button type="button" class="requestMethod layui-btn layui-btn-normal">delete</button>
+            </div>
         </div>
     </div>
     <div class="layui-form-item">
         <label class="layui-form-label">返回数据类型</label>
         <div class="layui-input-block">
-            <input type="radio" name="dataType" value="json" title="json" checked=""/>
-            <input type="radio" name="dataType" value="xml" title="xml"/>
-            <input type="radio" name="dataType" value="text" title="text"/>
+            <input type="text" id="dataType" name="dataType" required="required" lay-verify="required"
+                   placeholder="返回数据类型"
+                   autocomplete="off"
+                   class="layui-input"/>
+            <div class="layui-btn-group">
+                <button type="button" class="dataType layui-btn layui-btn-normal">application/json</button>
+                <button type="button" class="dataType layui-btn layui-btn-normal">application/xml</button>
+                <button type="button" class="dataType layui-btn layui-btn-normal">text/plain</button>
+            </div>
         </div>
     </div>
     <div class="layui-form-item">
         <label class="layui-form-label">API名称</label>
-        <div class="layui-input-inline">
+        <div class="layui-input-block">
             <input type="text" id="name" name="name" required="required" lay-verify="required"
                    placeholder="API名称"
                    autocomplete="off"
@@ -63,7 +83,7 @@
     </div>
     <div class="layui-form-item">
         <label class="layui-form-label">接口地址（相对）</label>
-        <div class="layui-input-inline">
+        <div class="layui-input-block">
             <input type="text" id="requestUrl" name="requestUrl" required="required" lay-verify="required"
                    placeholder="例如：/docdoc/manage/html/home"
                    autocomplete="off"
@@ -72,11 +92,17 @@
     </div>
     <div class="layui-form-item">
         <label class="layui-form-label">认证类型</label>
-        <div class="layui-input-inline">
+        <div class="layui-input-block">
             <input type="text" id="authType" name="authType" required="required" lay-verify="required"
                    placeholder="TOKEN / JWT / SESSION / 不认证 / 等等"
                    autocomplete="off"
                    class="layui-input"/>
+            <div class="layui-btn-group">
+                <button type="button" class="authType layui-btn layui-btn-normal">TOKEN</button>
+                <button type="button" class="authType layui-btn layui-btn-normal">JWT</button>
+                <button type="button" class="authType layui-btn layui-btn-normal">SESSION</button>
+                <button type="button" class="authType layui-btn layui-btn-normal">不认证</button>
+            </div>
         </div>
     </div>
     <div class="layui-form-item">
@@ -124,21 +150,9 @@
                     dataType: 'json',
                     success: function (json) {
                         if (json.success) {
-                            $('[name=contentType]').each(function (i, item) {
-                                if ($(item).val() === json.data.contentType) {
-                                    $(item).prop('checked', true);
-                                }
-                            });
-                            $('[name=requestMethod]').each(function (i, item) {
-                                if ($(item).val() === json.data.requestMethod) {
-                                    $(item).prop('checked', true);
-                                }
-                            });
-                            $('[name=dataType]').each(function (i, item) {
-                                if ($(item).val() === json.data.dataType) {
-                                    $(item).prop('checked', true);
-                                }
-                            });
+                            $("#contentType").val(json.data.contentType);
+                            $("#requestMethod").val(json.data.requestMethod);
+                            $("#dataType").val(json.data.dataType);
                             $("#name").val(json.data.name);
                             $("#requestUrl").val(json.data.requestUrl);
                             $("#authType").val(json.data.authType);
@@ -161,31 +175,16 @@
                 success: function (json) {
                     if (json.success) {
                         layer.msg("API保存成功");
+                        parent.document.getElementById("searchBtn").click();
                         if (id) {
-                            parent.document.getElementById("searchBtn").click();
                             parent.document.getElementById("popCloseBtn").click();
                         }
-                        var nowContentType = $('[name=contentType]:checked').val();
-                        var nowRequestMethod = $('[name=requestMethod]:checked').val();
-                        var nowDataType = $('[name=dataType]:checked').val();
-                        $("#resetBtn").click();
-                        $('[name=contentType]').each(function (i, item) {
-                            if ($(item).val() === nowContentType) {
-                                $(item).prop('checked', true);
-                            }
-                        });
-                        $('[name=requestMethod]').each(function (i, item) {
-                            if ($(item).val() === nowRequestMethod) {
-                                $(item).prop('checked', true);
-                            }
-                        });
-                        $('[name=dataType]').each(function (i, item) {
-                            if ($(item).val() === nowDataType) {
-                                $(item).prop('checked', true);
-                            }
-                        });
+                        var $name = $("#name");
+                        $name.val("");
+                        $("#requestUrl").val("");
+                        $("#authType").val("");
                         form.render();
-                        $("#name").focus();
+                        $name.focus();
                     } else {
                         layer.open({time: 5000, content: '<div>' + json.message + '</div>'});
                     }
@@ -194,7 +193,23 @@
             return false;
         });
 
-        $("#name").focus();
+        $(".contentType").bind("click", function () {
+            $("#contentType").val($(this).html());
+        });
+
+        $(".requestMethod").bind("click", function () {
+            $("#requestMethod").val($(this).html());
+        });
+
+        $(".dataType").bind("click", function () {
+            $("#dataType").val($(this).html());
+        });
+
+        $(".authType").bind("click", function () {
+            $("#authType").val($(this).html());
+        });
+
+        $("#contentType").focus();
     }();
     /*]]>*/
 </script>

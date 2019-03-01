@@ -17,8 +17,8 @@ public class ApiResponseExample {
     @Column(name = "apiId")
     private Long apiId;
 
-    @Column(name = "ip")
-    private String ip;
+    @Column(name = "owner")
+    private String owner;
 
     @Column(name = "responseExample")
     private String responseExample;
@@ -43,12 +43,12 @@ public class ApiResponseExample {
         this.apiId = apiId;
     }
 
-    public String getIp() {
-        return ip;
+    public String getOwner() {
+        return owner;
     }
 
-    public void setIp(String ip) {
-        this.ip = ip;
+    public void setOwner(String owner) {
+        this.owner = owner;
     }
 
     public String getResponseExample() {

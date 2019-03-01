@@ -44,4 +44,6 @@ public interface DocService {
     JsonObject apiResponseExampleOne(JsonObject jsonObject);
 
     JsonObject apiMock(JsonObject jsonObject);
+
+    JsonObject helperLocations(JsonObject jsonObject);
 }

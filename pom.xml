@@ -40,6 +40,12 @@
             <version>2.0.8.RELEASE</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-crypto</artifactId>
+            <version>5.0.7.RELEASE</version>
+        </dependency>
+
         <!-- https://mvnrepository.com/artifact/org.hibernate/hibernate-entitymanager -->
         <dependency>
             <groupId>org.hibernate</groupId>
@@ -72,6 +78,13 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
             <version>3.7</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/commons-io/commons-io -->
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.6</version>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/ch.qos.logback/logback-classic -->

@@ -5,17 +5,16 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import io.vertx.core.json.JsonObject;
 import org.apache.commons.lang3.StringUtils;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import xyz.fz.docdoc.dao.CommonDao;
 import xyz.fz.docdoc.entity.*;
 import xyz.fz.docdoc.model.Result;
 import xyz.fz.docdoc.repository.*;
@@ -43,16 +42,14 @@ public class DocServiceImpl implements DocService {
 
     private final ApiResponseExampleRepository apiResponseExampleRepository;
 
-    private final CommonDao db;
-
     private final String DEFAULT_MOCK_RESULT = "docdocNoMapping";
 
     private final String SPLIT = "@_@";
 
-    @Value("${ip.url.cache}")
-    private boolean ipUrlCacheEnabled;
+    @Value("${owner.url.cache}")
+    private boolean ownerUrlCacheEnabled;
 
-    private LoadingCache<String, String> ipUrlCache = CacheBuilder.newBuilder()
+    private LoadingCache<String, String> ownerUrlCache = CacheBuilder.newBuilder()
             .maximumSize(1000)
             .refreshAfterWrite(10, TimeUnit.SECONDS)
             .build(new CacheLoader<String, String>() {
@@ -61,9 +58,9 @@ public class DocServiceImpl implements DocService {
                 public String load(String keyParam) {
                     String[] keys = keyParam.split(SPLIT);
                     if (keys.length == 2) {
-                        String ip = keys[0];
+                        String owner = keys[0];
                         String url = keys[1];
-                        return getIpUrlResponse(ip, url);
+                        return getOwnerUrlResponse(owner, url);
                     } else {
                         return DEFAULT_MOCK_RESULT;
                     }
@@ -75,14 +72,12 @@ public class DocServiceImpl implements DocService {
                           ApiRepository apiRepository,
                           ApiFieldRepository apiFieldRepository,
                           ApiLogRepository apiLogRepository,
-                          ApiResponseExampleRepository apiResponseExampleRepository,
-                          CommonDao db) {
+                          ApiResponseExampleRepository apiResponseExampleRepository) {
         this.projectRepository = projectRepository;
         this.apiRepository = apiRepository;
         this.apiFieldRepository = apiFieldRepository;
         this.apiLogRepository = apiLogRepository;
         this.apiResponseExampleRepository = apiResponseExampleRepository;
-        this.db = db;
     }
 
     @Override
@@ -198,44 +193,36 @@ public class DocServiceImpl implements DocService {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public JsonObject apiList(JsonObject jsonObject) {
         String name = jsonObject.getString("name");
         String status = jsonObject.getString("status");
         Long projectId = Long.valueOf(jsonObject.getValue("projectId").toString());
-        Map<String, Object> params = new HashMap<>();
-        String sql = "";
-        sql += "select d.id as id, d.name as name, d.requestUrl as requestUrl, d.status as status, d.updateTime as updateTime from t_doc_api d ";
-        sql += "where 1=1 ";
-        sql += "and d.isActivity = 1 ";
-        sql += "and d.projectId = :projectId ";
-        params.put("projectId", projectId);
+
+        Api sApi = new Api();
+        sApi.setIsActivity(1);
+        sApi.setProjectId(projectId);
+        sApi.setVersion(null);
+
+        ExampleMatcher exampleMatcher = ExampleMatcher.matching();
+
         if (StringUtils.isNotBlank(name)) {
-            sql += "and d.name like concat(:name, '%') ";
-            params.put("name", name);
+            sApi.setName(name);
+            exampleMatcher = exampleMatcher.withMatcher("name", ExampleMatcher.GenericPropertyMatchers.startsWith());
         }
+
         if (StringUtils.isNotBlank(status)) {
-            sql += "and d.status = :status ";
-            params.put("status", status);
+            sApi.setStatus(status);
         }
-        List<Map> list = db.queryListBySql(sql, params, Map.class);
-        if (list.size() > 0) {
-            for (Map data : list) {
-                data.put("updateTime", new DateTime(data.get("updateTime")).toString("yyyy-MM-dd HH:mm:ss"));
-            }
-        }
-        JsonObject result = new JsonObject();
-        result.put("code", 0);
-        result.put("msg", "");
-        result.put("data", list);
-        result.put("count", list.size());
-        return result;
+
+        List<Api> list = apiRepository.findAll(Example.of(sApi, exampleMatcher), Sort.by(Sort.Direction.DESC, "id"));
+
+        return Result.ofList(list);
     }
 
     @Override
     public JsonObject apiEdit(JsonObject jsonObject) {
         Long id = Long.valueOf(jsonObject.getValue("id").toString());
-        return Result.ofData(JsonObject.mapFrom(apiOne(id)));
+        return Result.ofData(jsonObject.mergeIn(JsonObject.mapFrom(apiOne(id))));
     }
 
     private Api apiOne(Long id) {
@@ -254,6 +241,7 @@ public class DocServiceImpl implements DocService {
         if (fApi.isPresent()) {
             Api api = fApi.get();
             api.setIsActivity(0);
+            api.setUpdateTime(new Date());
             apiRepository.save(api);
             return Result.ofSuccess();
         } else {
@@ -269,6 +257,7 @@ public class DocServiceImpl implements DocService {
         if (fApi.isPresent()) {
             Api api = fApi.get();
             api.setStatus(status);
+            api.setUpdateTime(new Date());
             apiRepository.save(api);
             return Result.ofSuccess();
         } else {
@@ -365,17 +354,11 @@ public class DocServiceImpl implements DocService {
         sApiField.setApiId(apiId);
         sApiField.setActionType(actionType);
         sApiField.setVersion(null);
-        ExampleMatcher exampleMatcher = ExampleMatcher.matching();
-        Example<ApiField> apiFieldExample = Example.of(sApiField, exampleMatcher);
-        Sort sort = Sort.by(Sort.Direction.ASC, "version");
-        List<ApiField> list = apiFieldRepository.findAll(apiFieldExample, sort);
-
-        JsonObject result = new JsonObject();
-        result.put("code", 0);
-        result.put("msg", "");
-        result.put("data", list);
-        result.put("count", list.size());
-        return result;
+        List<ApiField> list = apiFieldRepository.findAll(
+                Example.of(sApiField, ExampleMatcher.matching()),
+                Sort.by(Sort.Direction.ASC, "version")
+        );
+        return Result.ofList(list);
     }
 
     @Override
@@ -413,38 +396,27 @@ public class DocServiceImpl implements DocService {
         ApiLog sApiLog = new ApiLog();
         sApiLog.setIsActivity(1);
         sApiLog.setApiId(apiId);
-        ExampleMatcher exampleMatcher = ExampleMatcher.matching();
-        Example<ApiLog> apiLogExample = Example.of(sApiLog, exampleMatcher);
-        Sort sort = Sort.by(Sort.Direction.ASC, "id");
-        List<ApiLog> list = apiLogRepository.findAll(apiLogExample, sort);
-
-        JsonObject result = new JsonObject();
-        result.put("code", 0);
-        result.put("msg", "");
-        result.put("data", list);
-        result.put("count", list.size());
-        return result;
+        List<ApiLog> list = apiLogRepository.findAll(
+                Example.of(sApiLog, ExampleMatcher.matching()),
+                Sort.by(Sort.Direction.ASC, "id")
+        );
+        return Result.ofList(list);
     }
 
     @Override
     public JsonObject apiResponseExampleAdd(JsonObject jsonObject) {
         Long apiId = Long.valueOf(jsonObject.getValue("apiId", "-1").toString());
-        String ip = jsonObject.getString("ip");
+        String owner = jsonObject.getString("owner");
         String responseExample = jsonObject.getString("responseExample");
         ApiResponseExample apiResponseExample;
-        ApiResponseExample sApiResponseExample = new ApiResponseExample();
-        sApiResponseExample.setApiId(apiId);
-        sApiResponseExample.setIp(ip);
-        ExampleMatcher exampleMatcher = ExampleMatcher.matching();
-        Example<ApiResponseExample> apiResponseExampleExample = Example.of(sApiResponseExample, exampleMatcher);
-        Optional<ApiResponseExample> fApiResponseExample = apiResponseExampleRepository.findOne(apiResponseExampleExample);
+        Optional<ApiResponseExample> fApiResponseExample = findApiResponseExample(apiId, owner);
         if (fApiResponseExample.isPresent()) {
             apiResponseExample = fApiResponseExample.get();
         } else {
             apiResponseExample = new ApiResponseExample();
             apiResponseExample.setApiId(apiId);
+            apiResponseExample.setOwner(owner);
         }
-        apiResponseExample.setIp(ip);
         apiResponseExample.setResponseExample(responseExample);
         apiResponseExample.setUpdateTime(new Date());
         apiResponseExample = apiResponseExampleRepository.save(apiResponseExample);
@@ -455,13 +427,8 @@ public class DocServiceImpl implements DocService {
     public JsonObject apiResponseExampleDel(JsonObject jsonObject) {
         try {
             Long apiId = Long.valueOf(jsonObject.getValue("apiId").toString());
-            String ip = jsonObject.getString("ip");
-            ApiResponseExample sApiResponseExample = new ApiResponseExample();
-            sApiResponseExample.setApiId(apiId);
-            sApiResponseExample.setIp(ip);
-            ExampleMatcher exampleMatcher = ExampleMatcher.matching();
-            Example<ApiResponseExample> apiResponseExample = Example.of(sApiResponseExample, exampleMatcher);
-            Optional<ApiResponseExample> fApiResponseExample = apiResponseExampleRepository.findOne(apiResponseExample);
+            String owner = jsonObject.getString("owner");
+            Optional<ApiResponseExample> fApiResponseExample = findApiResponseExample(apiId, owner);
             fApiResponseExample.ifPresent(apiResponseExampleRepository::delete);
             return Result.ofSuccess();
         } catch (Exception e) {
@@ -472,18 +439,13 @@ public class DocServiceImpl implements DocService {
     @Override
     public JsonObject apiResponseExampleOne(JsonObject jsonObject) {
         Long apiId = Long.valueOf(jsonObject.getValue("apiId").toString());
-        String ip = jsonObject.getString("ip");
-        ApiResponseExample sApiResponseExample = new ApiResponseExample();
-        sApiResponseExample.setApiId(apiId);
-        sApiResponseExample.setIp(ip);
-        ExampleMatcher exampleMatcher = ExampleMatcher.matching();
-        Example<ApiResponseExample> apiResponseExample = Example.of(sApiResponseExample, exampleMatcher);
-        Optional<ApiResponseExample> fApiResponseExample = apiResponseExampleRepository.findOne(apiResponseExample);
+        String owner = jsonObject.getString("owner");
+        Optional<ApiResponseExample> fApiResponseExample = findApiResponseExample(apiId, owner);
         Map<String, Object> result = new HashMap<>();
         if (fApiResponseExample.isPresent()) {
             result.put("response", fApiResponseExample.get().getResponseExample());
             result.put("type", "custom");
-            result.put("ip", fApiResponseExample.get().getIp());
+            result.put("owner", fApiResponseExample.get().getOwner());
             return Result.ofData(result);
         } else {
             result.put("response", apiOne(apiId).getResponseExample());
@@ -492,44 +454,74 @@ public class DocServiceImpl implements DocService {
         }
     }
 
-    @Override
-    @SuppressWarnings("unchecked")
-    public JsonObject apiMock(JsonObject jsonObject) {
-        String ip = jsonObject.getString("ip");
-        String url = jsonObject.getString("url");
-        return Result.ofData(mockResult(ip, url));
+    private Optional<ApiResponseExample> findApiResponseExample(Long apiId, String owner) {
+        ApiResponseExample sApiResponseExample = new ApiResponseExample();
+        sApiResponseExample.setApiId(apiId);
+        sApiResponseExample.setOwner(owner);
+        Example<ApiResponseExample> apiResponseExampleExample = Example.of(sApiResponseExample, ExampleMatcher.matching());
+        return apiResponseExampleRepository.findOne(apiResponseExampleExample);
     }
 
-    private String mockResult(String ip, String url) {
-        String keyParam = ip + SPLIT + url;
+    @Override
+    public JsonObject apiMock(JsonObject jsonObject) {
+        String owner = jsonObject.getString("owner");
+        String url = jsonObject.getString("url");
+        return Result.ofData(mockResult(owner, url));
+    }
+
+    @Override
+    public JsonObject helperLocations(JsonObject jsonObject) {
+        Map<String, Object> result = new HashMap<>();
+        List<String> devLocations = new ArrayList<>();
+        List<Api> latestApi = apiRepository.findAll(
+                PageRequest.of(0, 1, Sort.by(Sort.Direction.DESC, "updateTime"))
+        ).getContent();
+        if (latestApi.size() > 0) {
+            result.put("docTimeLatest", latestApi.get(0).getUpdateTime());
+        } else {
+            result.put("docTimeLatest", "");
+        }
+        Api sApi = new Api();
+        sApi.setVersion(null);
+        sApi.setIsActivity(1);
+        sApi.setStatus(Api.STATUS_DEVELOP);
+        List<Api> list = apiRepository.findAll(Example.of(sApi, ExampleMatcher.matching()));
+        if (list.size() > 0) {
+            for (Api api : list) {
+                devLocations.add(api.getRequestUrl());
+            }
+        }
+        result.put("devLocations", devLocations);
+        return Result.ofData(result);
+    }
+
+    private String mockResult(String owner, String url) {
+        String keyParam = owner + SPLIT + url;
         String mockResult = DEFAULT_MOCK_RESULT;
-        if (ipUrlCacheEnabled) {
+        if (ownerUrlCacheEnabled) {
             try {
-                mockResult = ipUrlCache.get(keyParam);
+                mockResult = ownerUrlCache.get(keyParam);
             } catch (ExecutionException e) {
                 LOGGER.error(BaseUtil.getExceptionStackTrace(e));
             }
         } else {
-            mockResult = getIpUrlResponse(ip, url);
+            mockResult = getOwnerUrlResponse(owner, url);
         }
         return mockResult;
     }
 
-    private String getIpUrlResponse(String ip, String url) {
+    private String getOwnerUrlResponse(String owner, String url) {
         String mockResult = DEFAULT_MOCK_RESULT;
         Api sApi = new Api();
         sApi.setRequestUrl(url);
         sApi.setIsActivity(1);
         sApi.setVersion(null);
-        ExampleMatcher exampleMatcher = ExampleMatcher.matching()
-                .withMatcher("requestUrl", ExampleMatcher.GenericPropertyMatchers.exact())
-                .withMatcher("isActivity", ExampleMatcher.GenericPropertyMatchers.exact());
-        Example<Api> apiExample = Example.of(sApi, exampleMatcher);
+        Example<Api> apiExample = Example.of(sApi, ExampleMatcher.matching());
         Optional<Api> fApi = apiRepository.findOne(apiExample);
         if (fApi.isPresent()) {
             Api api = fApi.get();
             JsonObject jsonObject = new JsonObject();
-            jsonObject.put("ip", ip);
+            jsonObject.put("owner", owner);
             jsonObject.put("apiId", api.getId());
             JsonObject result = apiResponseExampleOne(jsonObject);
             Map<String, Object> dataMap = ((JsonObject) result.getValue("data")).getMap();

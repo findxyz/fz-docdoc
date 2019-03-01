@@ -53,7 +53,9 @@ public class ServiceVerticle extends AbstractVerticle {
         DOC_API_RESPONSE_EXAMPLE_ADD("DOC_API_RESPONSE_EXAMPLE_ADD", DocService.class, "apiResponseExampleAdd"),
         DOC_API_RESPONSE_EXAMPLE_DEL("DOC_API_RESPONSE_EXAMPLE_DEL", DocService.class, "apiResponseExampleDel"),
         DOC_API_RESPONSE_EXAMPLE_ONE("DOC_API_RESPONSE_EXAMPLE_ONE", DocService.class, "apiResponseExampleOne"),
-        DOC_API_MOCK("DOC_API_MOCK", DocService.class, "apiMock");
+        DOC_API_MOCK("DOC_API_MOCK", DocService.class, "apiMock"),
+
+        DOC_HELPER_LOCATIONS("DOC_HELPER_LOCATIONS", DocService.class, "helperLocations");
 
         private String address;
 

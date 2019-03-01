@@ -16,6 +16,14 @@
             margin: 5px 0;
             clear: both;
         }
+
+        #apiRequestFieldList {
+            margin: 0 !important;
+        }
+
+        #apiResponseFieldList {
+            margin: 0 !important;
+        }
     </style>
 </head>
 <body>
@@ -158,7 +166,7 @@
                     <button class="layui-btn layui-btn-normal layui-btn-radius" id="customResponseTestBtn">测试</button>
                     <button class="layui-btn layui-btn-danger layui-btn-radius" id="customResponseClearBtn">清空</button>
                     <span style="color: blue;">【MOCK请求将使用以下数据返回】</span>
-                    <span id="ip" style="color: red;"></span>
+                    <span id="owner" style="color: red;"></span>
                     <div style="padding: 5px">
                         <pre>
                             <code class="json" style="height: 70vh" id="customResponseExample"></code>
@@ -260,6 +268,8 @@
 
         var id = getParameterByName("id", window.location);
 
+        var curUser = "";
+
         var loadApiInfo = function () {
             $.ajax("/docdoc/manage/api/doc/api/edit", {
                 type: 'POST',
@@ -277,6 +287,7 @@
                         $("#author").text(json.data.author);
                         $("#createTime").text(json.data.createTime);
                         $("#updateTime").text(json.data.updateTime);
+                        curUser = json.data.curUser;
                         var statusDesc;
                         switch (json.data.status) {
                             case "develop":
@@ -633,10 +644,10 @@
                     if (json.success) {
                         if (json.data.type === 'custom') {
                             $("#customResponseExample").text(json.data.response);
-                            $("#ip").text("（模版IP：" + json.data.ip + "）");
+                            $("#owner").text("（模版所有者：" + json.data.owner + "）");
                         } else {
                             $("#customResponseExample").text(json.data.response ? json.data.response : "无");
-                            $("#ip").text("（使用默认模版）");
+                            $("#owner").text("（使用默认模版）");
                         }
                         highlight("customResponseExample");
                     } else {
@@ -729,7 +740,7 @@
         });
 
         $("#customResponseTestBtn").click(function () {
-            window.open($("#requestUrl").text());
+            window.open($("#requestUrl").text() + "?owner=" + curUser);
         });
 
         // ======================== field form ========================
