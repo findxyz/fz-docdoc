@@ -7,11 +7,11 @@
     <link href="/pubs/layui-v2.4.3/layui/css/layui.css" rel="stylesheet"/>
     <style type="text/css">
         .layui-form-label {
-            width: 200px !important;
+            width: 240px !important;
         }
 
         .layui-input-block {
-            margin-left: 200px !important;
+            margin-left: 240px !important;
         }
 
         .layui-input {
@@ -82,10 +82,10 @@
         </div>
     </div>
     <div class="layui-form-item">
-        <label class="layui-form-label">接口地址（相对）</label>
+        <label class="layui-form-label">接口地址（域名端口后的地址）</label>
         <div class="layui-input-block">
             <input type="text" id="requestUrl" name="requestUrl" required="required" lay-verify="required"
-                   placeholder="例如：/docdoc/manage/html/home"
+                   placeholder="例如：/docdoc/manage/html/home 或 /docdoc/{restful}/something"
                    autocomplete="off"
                    class="layui-input"/>
         </div>

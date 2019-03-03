@@ -270,6 +270,8 @@
 
         var curUser = "";
 
+        var restful;
+
         var loadApiInfo = function () {
             $.ajax("/docdoc/manage/api/doc/api/edit", {
                 type: 'POST',
@@ -288,6 +290,7 @@
                         $("#createTime").text(json.data.createTime);
                         $("#updateTime").text(json.data.updateTime);
                         curUser = json.data.curUser;
+                        restful = !!json.data.regexUrl;
                         var statusDesc;
                         switch (json.data.status) {
                             case "develop":
@@ -309,6 +312,7 @@
                         $("#defaultRequestExample").text(json.data.requestExample ? json.data.requestExample : "无");
                         highlight("defaultRequestExample");
                         $("#defaultResponseExample").text(json.data.responseExample ? json.data.responseExample : "无");
+                        $("#customResponseExample").text(json.data.responseExample ? json.data.responseExample : "无");
                         highlight("defaultResponseExample");
                     } else {
                         layer.open({time: 5000, content: '<div>' + json.message + '</div>'});
@@ -646,7 +650,6 @@
                             $("#customResponseExample").text(json.data.response);
                             $("#owner").text("（模版所有者：" + json.data.owner + "）");
                         } else {
-                            $("#customResponseExample").text(json.data.response ? json.data.response : "无");
                             $("#owner").text("（使用默认模版）");
                         }
                         highlight("customResponseExample");
@@ -740,7 +743,7 @@
         });
 
         $("#customResponseTestBtn").click(function () {
-            window.open($("#requestUrl").text() + "?owner=" + curUser);
+            window.open($("#requestUrl").text() + "?owner=" + curUser + "&restful=" + restful);
         });
 
         // ======================== field form ========================

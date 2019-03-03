@@ -16,6 +16,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import xyz.fz.docdoc.entity.*;
+import xyz.fz.docdoc.model.MockUrl;
 import xyz.fz.docdoc.model.Result;
 import xyz.fz.docdoc.repository.*;
 import xyz.fz.docdoc.service.DocService;
@@ -57,10 +58,8 @@ public class DocServiceImpl implements DocService {
                 @ParametersAreNonnullByDefault
                 public String load(String keyParam) {
                     String[] keys = keyParam.split(SPLIT);
-                    if (keys.length == 2) {
-                        String owner = keys[0];
-                        String url = keys[1];
-                        return getOwnerUrlResponse(owner, url);
+                    if (keys.length == 3) {
+                        return mockResponse(new MockUrl(keys[0], keys[1], Boolean.valueOf(keys[2])));
                     } else {
                         return DEFAULT_MOCK_RESULT;
                     }
@@ -158,6 +157,8 @@ public class DocServiceImpl implements DocService {
         }
         api.setName(name);
         api.setRequestUrl(requestUrl);
+        String regexUrl = requestUrl.replaceAll("(\\{[^}]+})", "([^/]+)");
+        api.setRegexUrl(StringUtils.equals(regexUrl, requestUrl) ? "" : regexUrl);
         api.setAuthType(authType);
         api.setContentType(contentType);
         api.setRequestMethod(requestMethod);
@@ -443,15 +444,13 @@ public class DocServiceImpl implements DocService {
         Optional<ApiResponseExample> fApiResponseExample = findApiResponseExample(apiId, owner);
         Map<String, Object> result = new HashMap<>();
         if (fApiResponseExample.isPresent()) {
-            result.put("response", fApiResponseExample.get().getResponseExample());
             result.put("type", "custom");
             result.put("owner", fApiResponseExample.get().getOwner());
-            return Result.ofData(result);
+            result.put("response", fApiResponseExample.get().getResponseExample());
         } else {
-            result.put("response", apiOne(apiId).getResponseExample());
             result.put("type", "default");
-            return Result.ofData(result);
         }
+        return Result.ofData(result);
     }
 
     private Optional<ApiResponseExample> findApiResponseExample(Long apiId, String owner) {
@@ -464,15 +463,14 @@ public class DocServiceImpl implements DocService {
 
     @Override
     public JsonObject apiMock(JsonObject jsonObject) {
-        String owner = jsonObject.getString("owner");
-        String url = jsonObject.getString("url");
-        return Result.ofData(mockResult(owner, url));
+        MockUrl mockUrl = jsonObject.mapTo(MockUrl.class);
+        return Result.ofData(mockResult(mockUrl));
     }
 
     @Override
     public JsonObject helperLocations(JsonObject jsonObject) {
         Map<String, Object> result = new HashMap<>();
-        List<String> devLocations = new ArrayList<>();
+        List<Map<String, Object>> devLocations = new ArrayList<>();
         List<Api> latestApi = apiRepository.findAll(
                 PageRequest.of(0, 1, Sort.by(Sort.Direction.DESC, "updateTime"))
         ).getContent();
@@ -488,15 +486,18 @@ public class DocServiceImpl implements DocService {
         List<Api> list = apiRepository.findAll(Example.of(sApi, ExampleMatcher.matching()));
         if (list.size() > 0) {
             for (Api api : list) {
-                devLocations.add(api.getRequestUrl());
+                Map<String, Object> devLocation = new HashMap<>();
+                devLocation.put("url", StringUtils.defaultIfBlank(api.getRegexUrl(), api.getRequestUrl()));
+                devLocation.put("restful", StringUtils.isNotBlank(api.getRegexUrl()));
+                devLocations.add(devLocation);
             }
         }
         result.put("devLocations", devLocations);
         return Result.ofData(result);
     }
 
-    private String mockResult(String owner, String url) {
-        String keyParam = owner + SPLIT + url;
+    private String mockResult(MockUrl mockUrl) {
+        String keyParam = mockUrl.getUrl() + SPLIT + mockUrl.getOwner() + SPLIT + mockUrl.isRestful();
         String mockResult = DEFAULT_MOCK_RESULT;
         if (ownerUrlCacheEnabled) {
             try {
@@ -505,29 +506,58 @@ public class DocServiceImpl implements DocService {
                 LOGGER.error(BaseUtil.getExceptionStackTrace(e));
             }
         } else {
-            mockResult = getOwnerUrlResponse(owner, url);
+            mockResult = mockResponse(mockUrl);
         }
         return mockResult;
     }
 
-    private String getOwnerUrlResponse(String owner, String url) {
-        String mockResult = DEFAULT_MOCK_RESULT;
+    private String mockResponse(MockUrl mockUrl) {
+        if (mockUrl.isRestful()) {
+            return mockResponseRestful(mockUrl);
+        } else {
+            return mockResponseExact(mockUrl);
+        }
+    }
+
+    private String mockResponseRestful(MockUrl mockUrl) {
         Api sApi = new Api();
-        sApi.setRequestUrl(url);
+        sApi.setStatus(Api.STATUS_DEVELOP);
         sApi.setIsActivity(1);
         sApi.setVersion(null);
-        Example<Api> apiExample = Example.of(sApi, ExampleMatcher.matching());
-        Optional<Api> fApi = apiRepository.findOne(apiExample);
-        if (fApi.isPresent()) {
-            Api api = fApi.get();
-            JsonObject jsonObject = new JsonObject();
-            jsonObject.put("owner", owner);
-            jsonObject.put("apiId", api.getId());
-            JsonObject result = apiResponseExampleOne(jsonObject);
-            Map<String, Object> dataMap = ((JsonObject) result.getValue("data")).getMap();
-            if (dataMap != null) {
-                mockResult = dataMap.get("response") != null ? dataMap.get("response").toString() : mockResult;
+        List<Api> list = apiRepository.findAll(Example.of(sApi, ExampleMatcher.matching()));
+        for (Api api : list) {
+            if (mockUrl.getUrl().matches(api.getRegexUrl())) {
+                return mockResponseFind(api, mockUrl.getOwner());
             }
+        }
+        return DEFAULT_MOCK_RESULT;
+    }
+
+    private String mockResponseExact(MockUrl mockUrl) {
+        String mockResult = DEFAULT_MOCK_RESULT;
+        Api sApi = new Api();
+        sApi.setRequestUrl(mockUrl.getUrl());
+        sApi.setStatus(Api.STATUS_DEVELOP);
+        sApi.setIsActivity(1);
+        sApi.setVersion(null);
+        Optional<Api> fApi = apiRepository.findOne(Example.of(sApi, ExampleMatcher.matching()));
+        if (fApi.isPresent()) {
+            mockResult = mockResponseFind(fApi.get(), mockUrl.getOwner());
+        }
+        return mockResult;
+    }
+
+    private String mockResponseFind(Api api, String owner) {
+        String mockResult;
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.put("apiId", api.getId());
+        jsonObject.put("owner", owner);
+        JsonObject result = apiResponseExampleOne(jsonObject);
+        Map<String, Object> dataMap = ((JsonObject) result.getValue("data")).getMap();
+        if (dataMap.get("type").toString().equals("custom")) {
+            mockResult = dataMap.get("response") != null ? dataMap.get("response").toString() : "请在【响应模板】【设置自定义模板】";
+        } else {
+            mockResult = StringUtils.defaultIfBlank(api.getResponseExample(), "请在【响应模板】【设置默认模板】");
         }
         return mockResult;
     }

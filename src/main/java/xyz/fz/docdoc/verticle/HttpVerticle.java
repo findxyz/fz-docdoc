@@ -2,6 +2,7 @@ package xyz.fz.docdoc.verticle;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.http.HttpServer;
+import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
@@ -12,6 +13,7 @@ import io.vertx.ext.web.sstore.SessionStore;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import xyz.fz.docdoc.model.MockUrl;
 import xyz.fz.docdoc.model.Result;
 import xyz.fz.docdoc.util.BaseUtil;
 import xyz.fz.docdoc.util.EventBusUtil;
@@ -390,8 +392,15 @@ public class HttpVerticle extends AbstractVerticle {
 
     private void docdocMappingHandler(Router router) {
         router.route("/*").handler(routingContext -> {
-            String owner = StringUtils.defaultIfBlank(routingContext.request().getHeader("owner"), routingContext.request().getParam("owner"));
-            JsonObject jsonObject = new JsonObject().put("owner", owner).put("url", routingContext.request().path());
+            HttpServerRequest request = routingContext.request();
+            String url = request.path().replaceAll("\\?.*", "");
+            String owner = StringUtils.defaultIfBlank(request.getHeader("owner"), request.getParam("owner"));
+            boolean restful = false;
+            String restfulParam = StringUtils.defaultIfBlank(request.getHeader("restful"), request.getParam("restful"));
+            if (StringUtils.isNotBlank(restfulParam)) {
+                restful = Boolean.valueOf(restfulParam);
+            }
+            JsonObject jsonObject = JsonObject.mapFrom(new MockUrl(url, owner, restful));
             EventBusUtil.mockBus(vertx, routingContext, ServiceVerticle.Address.DOC_API_MOCK, jsonObject);
         });
     }

@@ -31,6 +31,9 @@ public class Api {
     @Column(name = "requestUrl")
     private String requestUrl;
 
+    @Column(name = "regexUrl")
+    private String regexUrl;
+
     @Column(name = "authType")
     private String authType;
 
@@ -100,6 +103,14 @@ public class Api {
 
     public void setRequestUrl(String requestUrl) {
         this.requestUrl = requestUrl;
+    }
+
+    public String getRegexUrl() {
+        return regexUrl;
+    }
+
+    public void setRegexUrl(String regexUrl) {
+        this.regexUrl = regexUrl;
     }
 
     public String getAuthType() {

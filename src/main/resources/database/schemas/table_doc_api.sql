@@ -3,6 +3,7 @@ CREATE TABLE t_doc_api (
   projectId BIGINT,
   name VARCHAR(100),
   requestUrl VARCHAR(200),
+  regexUrl VARCHAR(200),
   authType VARCHAR(50),
   contentType VARCHAR(50),
   requestMethod VARCHAR(10),
