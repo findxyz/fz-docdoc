@@ -163,7 +163,7 @@
                 </div>
                 <div class="layui-col-xs6">
                     <button class="layui-btn layui-btn-radius" id="customResponseBtn">设置自定义模版</button>
-                    <button class="layui-btn layui-btn-normal layui-btn-radius" id="customResponseTestBtn">测试</button>
+                    <button class="layui-btn layui-btn-normal layui-btn-radius" style="display: none" id="customResponseTestBtn">开发中测试</button>
                     <button class="layui-btn layui-btn-danger layui-btn-radius" id="customResponseClearBtn">清空</button>
                     <span style="color: blue;">【MOCK请求将使用以下数据返回】</span>
                     <span id="owner" style="color: red;"></span>
@@ -295,6 +295,7 @@
                         switch (json.data.status) {
                             case "develop":
                                 statusDesc = "开发中";
+                                $("#customResponseTestBtn").show();
                                 break;
                             case "developDone":
                                 statusDesc = "开发完成";
