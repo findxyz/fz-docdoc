@@ -236,12 +236,7 @@ public class CommonDaoImpl implements CommonDao {
     public int execute(String hql, Map<String, Object> params) {
         try {
             Query query = entityManager.createQuery(hql);
-            if (params != null) {
-                for (Map.Entry<String, Object> entry : params.entrySet()) {
-                    query.setParameter(entry.getKey(), entry.getValue());
-                }
-            }
-            return query.executeUpdate();
+            return execute0(params, query);
         } catch (Exception e) {
             logger.error(BaseUtil.getExceptionStackTrace(e));
             throw new RuntimeException(e);
@@ -252,16 +247,19 @@ public class CommonDaoImpl implements CommonDao {
     public int executeBySql(String sql, Map<String, Object> params) {
         try {
             Query query = entityManager.createNativeQuery(sql);
-            if (params != null) {
-                for (Map.Entry<String, Object> entry : params.entrySet()) {
-                    query.setParameter(entry.getKey(), entry.getValue());
-                }
-            }
-            return query.executeUpdate();
+            return execute0(params, query);
         } catch (Exception e) {
             logger.error(BaseUtil.getExceptionStackTrace(e));
             throw new RuntimeException(e);
         }
     }
 
+    private int execute0(Map<String, Object> params, Query query) {
+        if (params != null) {
+            for (Map.Entry<String, Object> entry : params.entrySet()) {
+                query.setParameter(entry.getKey(), entry.getValue());
+            }
+        }
+        return query.executeUpdate();
+    }
 }
